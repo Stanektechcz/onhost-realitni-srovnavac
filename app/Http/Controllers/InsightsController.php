@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Services\Benchmarks\CsuBenchmarks;
 use App\Services\MarketStats;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,7 @@ class InsightsController extends Controller
         $compare = collect((array) $request->query('c', []))->filter(fn ($s) => is_string($s))->take(4)
             ->map(fn ($s) => $districts->firstWhere('slug', $s))->filter()->values();
 
-        return view('insights.index', ['districts' => $districts, 'compare' => $compare, 'total' => $stats->dataset()->count()]);
+        return view('insights.index', ['districts' => $districts, 'compare' => $compare, 'total' => $stats->dataset()->count(), 'benchmarks' => CsuBenchmarks::forAreas(['Hlavní město Praha', 'Česko'])]);
     }
 
     public function show(string $slug, MarketStats $stats)
@@ -26,7 +27,10 @@ class InsightsController extends Controller
         $listings = Listing::public()->where(fn ($q) => $q->where('district', $district['name'])->orWhere(fn ($w) => $w->whereNull('district')->where('city', $district['name'])))
             ->with('photos')->latest('published_at')->limit(6)->get();
 
-        return view('insights.show', compact('district', 'detail', 'listings'));
+        $area = CsuBenchmarks::areaFor($district['city'] ?? $district['name']);
+        $benchmarks = CsuBenchmarks::forAreas(array_values(array_filter([$area, 'Česko'])));
+
+        return view('insights.show', compact('district', 'detail', 'listings', 'benchmarks'));
     }
 
     /** Coarsened price/m² points for the heatmap (aggregate use only). */

@@ -74,6 +74,7 @@
             </div>
         </form>
     @endif
+    @include('insights._benchmarks', ['benchmarks' => $benchmarks, 'ours' => null])
     <p class="text-xs text-muted-foreground">Metodika: cena za m² = inzerovaná cena / užitná plocha. Medián a kvartily se počítají jen při alespoň {{ \App\Services\MarketStats::MIN_SAMPLE }} nabídkách. Inzerované ceny se mohou lišit od skutečných transakčních cen.</p>
 </div>
 @endsection

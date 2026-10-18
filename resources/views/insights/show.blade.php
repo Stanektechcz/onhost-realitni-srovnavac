@@ -77,6 +77,10 @@
     </section>
 </div>
 
+<div class="container-page mt-6">
+    @include('insights._benchmarks', ['benchmarks' => $benchmarks, 'ours' => $district['sale']['enough'] ? $district['sale']['median'] : null])
+</div>
+
 <section class="container-page mt-10">
     <div class="flex flex-wrap items-end justify-between gap-3">
         <h2 class="font-display text-2xl font-bold">Aktuální nabídky – {{ $district['name'] }}</h2>

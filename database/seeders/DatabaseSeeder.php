@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(MarketBenchmarkSeeder::class); // real official data, allowed everywhere
         if (app()->environment('production') && ! env('SEED_ALLOW_PRODUCTION')) {
             $this->command?->error('Demo seeder se na produkci nespouští – data na webu musí být pravdivá.');
 
