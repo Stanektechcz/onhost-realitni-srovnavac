@@ -98,3 +98,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/moje/inzeraty/{listing}/predavaci-protokol', [OwnerToolsController::class, 'storeHandover'])->name('owner.handover.store');
     Route::get('/moje/inzeraty/{listing}/predavaci-protokol/{protocol}', [OwnerToolsController::class, 'printHandover'])->name('owner.handover.print');
 });
+
+// --- Agency import feed (push API, token auth, no session/CSRF) ---
+Route::prefix('api/feed/v1')->middleware([\App\Http\Middleware\AuthenticateFeed::class, 'throttle:120,1'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
+    ->group(function () {
+        Route::get('/listings', [\App\Http\Controllers\Api\AgencyFeedController::class, 'index']);
+        Route::post('/listings', [\App\Http\Controllers\Api\AgencyFeedController::class, 'upsert']);
+        Route::delete('/listings/{externalId}', [\App\Http\Controllers\Api\AgencyFeedController::class, 'destroy'])->where('externalId', '[A-Za-z0-9._\-]+');
+    });

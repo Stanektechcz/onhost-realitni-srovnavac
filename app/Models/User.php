@@ -15,11 +15,11 @@ class User extends Authenticatable
 
     protected $fillable = ['name', 'email', 'password', 'role', 'phone'];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'feed_token_hash'];
 
     protected function casts(): array
     {
-        return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'is_banned' => 'boolean'];
+        return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'is_banned' => 'boolean', 'feed_autopublish' => 'boolean', 'feed_last_used_at' => 'datetime'];
     }
 
     public function isAdmin(): bool
