@@ -13,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [\App\Http\Middleware\SecurityHeaders::class]);
-        $middleware->validateCsrfTokens(except: ["api/feed/*"]);
+        $middleware->validateCsrfTokens(except: ["api/feed/*", "import/RPC2"]);
         $middleware->redirectGuestsTo(fn () => route("login"));
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -106,3 +106,6 @@ Route::prefix('api/feed/v1')->middleware([\App\Http\Middleware\AuthenticateFeed:
         Route::post('/listings', [\App\Http\Controllers\Api\AgencyFeedController::class, 'upsert']);
         Route::delete('/listings/{externalId}', [\App\Http\Controllers\Api\AgencyFeedController::class, 'destroy'])->where('externalId', '[A-Za-z0-9._\-]+');
     });
+
+// --- Sreality-compatible XML-RPC import for agency CRMs (session hash auth, no CSRF) ---
+Route::post('/import/RPC2', \App\Http\Controllers\Api\SrealityImportController::class)->middleware('throttle:300,1')->name('import.rpc2');
