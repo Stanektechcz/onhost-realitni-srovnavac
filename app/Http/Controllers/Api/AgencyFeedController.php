@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ImportFeedPhotos;
 use App\Models\AuditLog;
 use App\Models\Listing;
 use App\Models\User;
@@ -45,6 +46,9 @@ class AgencyFeedController extends Controller
                 $this->moderate($listing, $agency);
             }
             $listing->save();
+            if (array_key_exists('photos', $d)) {
+                ImportFeedPhotos::dispatchIfChanged($listing, $d['photos'] ?? []);
+            }
             $exists ? $result['updated']++ : $result['created']++;
         }
         $agency->forceFill(['feed_last_used_at' => now()])->save();
@@ -111,6 +115,8 @@ class AgencyFeedController extends Controller
             'has_parking' => ['nullable', 'boolean'],
             'pets_allowed' => ['nullable', 'boolean'],
             'available_from' => ['nullable', 'date'],
+            'photos' => ['nullable', 'array', 'max:'.config('reality.max_photos')],
+            'photos.*' => ['required', 'string', 'max:2048', 'url:https', 'distinct'],
         ];
     }
 
