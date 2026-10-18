@@ -54,6 +54,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/moje/inzeraty/{listing}/krok/{step}', [ListingController::class, 'saveStep'])->whereNumber('step')->name('listings.step.save');
     Route::post('/moje/inzeraty/{listing}/fotky', [ListingController::class, 'uploadPhotos'])->middleware('throttle:30,1')->name('listings.photos');
     Route::delete('/moje/inzeraty/{listing}/fotky/{photo}', [ListingController::class, 'deletePhoto'])->name('listings.photos.destroy');
+    Route::get('/api/adresa', [\App\Http\Controllers\ListingAssistController::class, 'addressSuggest'])->middleware('throttle:geocode')->name('assist.address');
+    Route::get('/api/adresa/detail', [\App\Http\Controllers\ListingAssistController::class, 'addressResolve'])->middleware('throttle:geocode')->name('assist.address.resolve');
+    Route::get('/api/odhad-ceny', [\App\Http\Controllers\ListingAssistController::class, 'priceSuggest'])->middleware('throttle:30,1')->name('assist.price');
+    Route::post('/moje/inzeraty/{listing}/navrh-popisu', [\App\Http\Controllers\ListingAssistController::class, 'describe'])->middleware('throttle:30,1')->name('assist.describe');
     Route::post('/moje/inzeraty/{listing}/odeslat', [ListingController::class, 'submit'])->name('listings.submit');
     Route::delete('/moje/inzeraty/{listing}', [ListingController::class, 'destroy'])->middleware('password.confirm')->name('listings.destroy');
 

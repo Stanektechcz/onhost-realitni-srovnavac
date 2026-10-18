@@ -72,7 +72,7 @@ class ListingController extends Controller
     public function saveStep(Request $request, Listing $listing, int $step)
     {
         $this->authorize('update', $listing);
-        abort_unless(in_array($step, [1, 2, 3], true), 404);
+        abort_unless(in_array($step, ListingSteps::FORM_STEPS, true), 404);
         $data = $request->validate(ListingSteps::rules($step, $request->all()));
         $listing->fill(ListingSteps::toAttributes($step, $data));
         if ($listing->status === 'active' && $listing->isDirty()) {
