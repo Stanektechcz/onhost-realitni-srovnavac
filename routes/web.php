@@ -101,7 +101,6 @@ Route::middleware('auth')->group(function () {
 
 // --- Agency import feed (push API, token auth, no session/CSRF) ---
 Route::prefix('api/feed/v1')->middleware([\App\Http\Middleware\AuthenticateFeed::class, 'throttle:120,1'])
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
     ->group(function () {
         Route::get('/listings', [\App\Http\Controllers\Api\AgencyFeedController::class, 'index']);
         Route::post('/listings', [\App\Http\Controllers\Api\AgencyFeedController::class, 'upsert']);
