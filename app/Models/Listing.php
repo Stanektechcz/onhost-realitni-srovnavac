@@ -37,7 +37,7 @@ class Listing extends Model
         static::creating(function (Listing $l) {
             $l->slug ??= Str::lower(Str::random(10));
         });
-        $flush = fn () => \Illuminate\Support\Facades\Cache::forget(\App\Services\MarketStats::CACHE_KEY);
+        $flush = fn () => \App\Services\MarketStats::flush();
         static::saved($flush);
         static::deleted($flush);
     }

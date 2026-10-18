@@ -17,6 +17,21 @@ class MarketStats
 
     public const CACHE_KEY = 'market:dataset:v2';
 
+    /** Generation token: derived caches (locality pages, sitemap) are keyed by it and die with flush(). */
+    public const GEN_KEY = 'market:gen';
+
+    public static function flush(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+        Cache::forget(self::GEN_KEY);
+    }
+
+    /** Cache key for an aggregate derived from market data; invalidated together with the dataset. */
+    public static function derivedKey(string $name): string
+    {
+        return 'market:'.Cache::rememberForever(self::GEN_KEY, fn () => bin2hex(random_bytes(6))).':'.$name;
+    }
+
     /** Raw aggregate-safe rows (no ids, slugs, texts). */
     public function dataset(): Collection
     {

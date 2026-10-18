@@ -24,6 +24,7 @@ Route::post('/inzerat/{listing}/nahlasit', [ContactController::class, 'report'])
 Route::get('/clenstvi', [PublicController::class, 'pricing'])->name('pricing');
 Route::get('/info/{page}', [PublicController::class, 'legal'])->name('legal');
 Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
+Route::get('/sitemap-{page}.xml', [PublicController::class, 'sitemapPart'])->whereNumber('page')->name('sitemap.part');
 Route::get('/robots.txt', [PublicController::class, 'robots']);
 
 Route::middleware('guest')->group(function () {
@@ -73,6 +74,8 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/lokality', [InsightsController::class, 'index'])->name('insights.index');
 Route::get('/lokality/{slug}', [InsightsController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('insights.show');
+Route::get('/pronajem/{slug}', [InsightsController::class, 'offer'])->where('slug', '[a-z0-9-]+')->name('localities.rent');
+Route::get('/prodej/{slug}', [InsightsController::class, 'offer'])->where('slug', '[a-z0-9-]+')->name('localities.sale');
 Route::get('/api/lokality/heat', [InsightsController::class, 'heat'])->middleware('throttle:60,1')->name('insights.heat');
 Route::get('/kalkulacky', [ToolsController::class, 'calculators'])->name('tools.calculators');
 Route::get('/pruvodce', [ToolsController::class, 'guides'])->name('guides.index');

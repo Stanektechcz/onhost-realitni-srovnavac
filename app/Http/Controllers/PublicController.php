@@ -38,12 +38,61 @@ class PublicController extends Controller
         return view('pages.pricing', compact('plans'));
     }
 
+    public const SITEMAP_PAGE = 5000;
+
+    /** All sitemap URLs: [loc, lastmod|null, changefreq|null]. */
+    public static function sitemapUrls(): array
+    {
+        $urls = [
+            [route('home'), null, 'daily'], [route('search', ['offer_type' => 'rent']), null, 'hourly'], [route('search', ['offer_type' => 'sale']), null, 'hourly'],
+            [route('insights.index'), null, 'daily'],
+        ];
+        $localities = app(\App\Services\Localities::class);
+        $agg = $localities->aggregates();
+        foreach ($localities->all() as $slug => $loc) {
+            $a = $agg[$slug];
+            $last = $a['lastmod'] ? \Illuminate\Support\Carbon::parse($a['lastmod'])->toAtomString() : null;
+            if (\App\Services\Localities::hasContent($a)) {
+                $urls[] = [route('insights.show', $slug), $last, 'weekly'];
+            }
+            foreach (['rent' => 'localities.rent', 'sale' => 'localities.sale'] as $offer => $name) {
+                if (\App\Services\Localities::hasContent($a, $offer)) {
+                    $urls[] = [route($name, $slug), $last, 'daily'];
+                }
+            }
+        }
+        $urls[] = [route('tools.calculators'), null, null];
+        $urls[] = [route('guides.index'), null, null];
+        foreach (array_keys(config('reality_content.guides')) as $g) {
+            $urls[] = [route('guides.show', $g), null, null];
+        }
+        foreach (array_keys(self::LEGAL) as $slug) {
+            $urls[] = [route('legal', $slug), null, null];
+        }
+        foreach (Listing::public()->latest('published_at')->limit(45000)->get(['slug', 'updated_at']) as $l) {
+            $urls[] = [route('listings.show', $l), $l->updated_at->toAtomString(), null];
+        }
+
+        return $urls;
+    }
+
     public function sitemap()
     {
-        $listings = Listing::public()->latest('published_at')->limit(45000)->get(['slug', 'updated_at']);
+        $urls = self::sitemapUrls();
+        if (count($urls) <= self::SITEMAP_PAGE) {
+            return response()->view('sitemap', ['urls' => $urls])->header('Content-Type', 'application/xml');
+        }
+        $pages = (int) ceil(count($urls) / self::SITEMAP_PAGE);
 
-        return response()->view('sitemap', ['listings' => $listings, 'legal' => array_keys(self::LEGAL)])
-            ->header('Content-Type', 'application/xml');
+        return response()->view('sitemap-index', ['pages' => $pages, 'lastmod' => now()->toAtomString()])->header('Content-Type', 'application/xml');
+    }
+
+    public function sitemapPart(int $page)
+    {
+        $chunk = array_slice(self::sitemapUrls(), ($page - 1) * self::SITEMAP_PAGE, self::SITEMAP_PAGE);
+        abort_if($page < 1 || ! $chunk, 404);
+
+        return response()->view('sitemap', ['urls' => $chunk])->header('Content-Type', 'application/xml');
     }
 
     public function robots()

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Listing;
 use App\Services\Benchmarks\CsuBenchmarks;
+use App\Services\Localities;
 use App\Services\MarketStats;
 use Illuminate\Http\Request;
 
@@ -18,19 +19,42 @@ class InsightsController extends Controller
         return view('insights.index', ['districts' => $districts, 'compare' => $compare, 'total' => $stats->dataset()->count(), 'benchmarks' => CsuBenchmarks::forAreas(['Hlavní město Praha', 'Česko'])]);
     }
 
-    public function show(string $slug, MarketStats $stats)
+    public function show(string $slug, MarketStats $stats, Localities $localities)
     {
-        $district = $stats->findDistrict($slug);
-        abort_unless($district, 404);
-        $detail = $stats->districtDetail($district['name']);
+        return $this->landing($slug, null, $stats, $localities);
+    }
+
+    /** Offer type × locality combination page (/pronajem/{slug}, /prodej/{slug}). */
+    public function offer(Request $request, string $slug, MarketStats $stats, Localities $localities)
+    {
+        $offer = Localities::offerFromSegment(explode('/', trim($request->path(), '/'))[0]);
+        abort_unless($offer, 404);
+
+        return $this->landing($slug, $offer, $stats, $localities);
+    }
+
+    private function landing(string $slug, ?string $offer, MarketStats $stats, Localities $localities)
+    {
+        $loc = $localities->find($slug);
+        abort_unless($loc, 404);
+        $agg = $localities->aggregate($slug);
+        $all = $localities->all();
+
         // Only public internal listings are shown individually.
-        $listings = Listing::public()->where(fn ($q) => $q->where('district', $district['name'])->orWhere(fn ($w) => $w->whereNull('district')->where('city', $district['name'])))
+        $listings = $localities->scope(Listing::public(), $loc)->when($offer, fn ($q) => $q->where('offer_type', $offer))
             ->with('photos')->latest('published_at')->limit(6)->get();
+        $benchmarks = CsuBenchmarks::forAreas(array_values(array_unique(array_filter([$loc['area'], 'Česko']))));
+        $district = $loc['kind'] !== 'kraj' ? $stats->findDistrict($slug) : null;
+        $detail = $district ? $stats->districtDetail($district['name']) : null;
+        $neighbours = collect($loc['neighbours'])->map(fn ($s) => $all->get($s))->filter()->values();
+        $children = $all->where('parent', $slug)->values();
+        $parent = $loc['parent'] ? $all->get($loc['parent']) : null;
 
-        $area = CsuBenchmarks::areaFor($district['city'] ?? $district['name']);
-        $benchmarks = CsuBenchmarks::forAreas(array_values(array_filter([$area, 'Česko'])));
-
-        return view('insights.show', compact('district', 'detail', 'listings', 'benchmarks'));
+        return view('insights.show', [
+            'loc' => $loc, 'agg' => $agg, 'offer' => $offer, 'listings' => $listings, 'benchmarks' => $benchmarks, 'detail' => $detail,
+            'neighbours' => $neighbours, 'children' => $children, 'parent' => $parent,
+            'noindex' => ! Localities::hasContent($agg, $offer),
+        ]);
     }
 
     /** Coarsened price/m² points for the heatmap (aggregate use only). */

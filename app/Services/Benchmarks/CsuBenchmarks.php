@@ -93,6 +93,7 @@ class CsuBenchmarks
             );
             $n += $chunk->count();
         }
+        \App\Services\MarketStats::flush();
 
         return $n;
     }
