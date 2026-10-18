@@ -12,18 +12,24 @@ use Illuminate\Support\Facades\Storage;
 
 class ListingController extends Controller
 {
-    public function show(Request $request, Listing $listing)
+    public function show(Request $request, Listing $listing, \App\Services\MarketStats $stats)
     {
         abort_unless($request->user()?->can('view', $listing) ?? $listing->isPublic(), 404);
         $listing->load('photos');
         if ($listing->isPublic()) {
             $listing->increment('views');
+            if (! $request->user() || $request->user()->id !== $listing->user_id) {
+                \App\Models\ListingStat::bump($listing, 'views');
+            }
         }
+        $market = $stats->versusMarket($listing);
+        $slots = $listing->slots()->free()->limit(30)->get();
+        $myBooking = $request->user() ? $listing->slots()->where('booked_by', $request->user()->id)->where('starts_at', '>', now())->first() : null;
         $isFavorite = $request->user()?->favorites()->where('listing_id', $listing->id)->exists() ?? false;
         $similar = Listing::public()->where('id', '!=', $listing->id)->where('offer_type', $listing->offer_type)
             ->where('city', $listing->city)->with('photos')->latest('published_at')->limit(3)->get();
 
-        return view('listings.show', compact('listing', 'isFavorite', 'similar'));
+        return view('listings.show', compact('listing', 'isFavorite', 'similar', 'market', 'slots', 'myBooking'));
     }
 
     public function mine(Request $request)

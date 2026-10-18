@@ -19,21 +19,40 @@ class AccountController extends Controller
             'favoriteCount' => $u->favorites()->count(),
             'searchCount' => $u->savedSearches()->count(),
             'unread' => $u->receivedMessages()->whereNull('read_at')->count(),
+            'viewingCount' => \App\Models\ViewingSlot::where('booked_by', $u->id)->where('starts_at', '>', now())->count()
+                + \App\Models\ViewingSlot::whereIn('listing_id', $u->listings()->select('id'))->whereNotNull('booked_by')->where('starts_at', '>', now())->count(),
+            'listings' => $u->listings()->with('photos')->latest()->limit(5)->get(),
+            'views30' => \App\Models\ListingStat::whereIn('listing_id', $u->listings()->select('id'))->where('day', '>=', now()->subDays(30)->toDateString())->sum('views'),
         ]);
     }
 
     public function favorites(Request $request)
     {
-        $listings = Listing::public()->whereIn('id', $request->user()->favorites()->select('listing_id'))->with('photos')->paginate(12);
+        $listings = Listing::public()->whereIn('id', $request->user()->favorites()->select('listing_id'))->with('photos')->paginate(24);
+        $notes = $request->user()->favorites()->pluck('note', 'listing_id');
 
-        return view('account.favorites', compact('listings'));
+        return view('account.favorites', compact('listings', 'notes'));
+    }
+
+    public function favoriteNote(Request $request, Listing $listing)
+    {
+        $data = $request->validate(['note' => ['nullable', 'string', 'max:1000']]);
+        $fav = $request->user()->favorites()->where('listing_id', $listing->id)->firstOrFail();
+        $fav->update(['note' => $data['note']]);
+
+        return back()->with('status', 'Poznámka uložena.');
     }
 
     public function toggleFavorite(Request $request, Listing $listing)
     {
         abort_unless($listing->isPublic(), 404);
         $fav = Favorite::where('user_id', $request->user()->id)->where('listing_id', $listing->id)->first();
-        $fav ? $fav->delete() : Favorite::create(['user_id' => $request->user()->id, 'listing_id' => $listing->id]);
+        if ($fav) {
+            $fav->delete();
+        } else {
+            Favorite::create(['user_id' => $request->user()->id, 'listing_id' => $listing->id]);
+            \App\Models\ListingStat::bump($listing, 'saves');
+        }
 
         return back()->with('status', $fav ? 'Odebráno z oblíbených.' : 'Přidáno do oblíbených.');
     }
@@ -68,9 +87,25 @@ class AccountController extends Controller
 
     public function messages(Request $request)
     {
-        $messages = $request->user()->receivedMessages()->with('listing')->latest()->paginate(20);
-        $request->user()->receivedMessages()->whereNull('read_at')->update(['read_at' => now()]);
+        $box = $request->query('box') === 'archiv' ? 'archiv' : 'inbox';
+        $q = $request->user()->receivedMessages()->with('listing')->latest();
+        $box === 'archiv' ? $q->whereNotNull('archived_at') : $q->whereNull('archived_at');
+        if ($request->filled('listing')) {
+            $q->whereHas('listing', fn ($w) => $w->where('slug', $request->query('listing')));
+        }
+        $messages = $q->paginate(20)->withQueryString();
+        $unreadIds = $messages->getCollection()->whereNull('read_at')->pluck('id');
+        $request->user()->receivedMessages()->whereIn('id', $unreadIds)->update(['read_at' => now()]);
+        $listings = $request->user()->listings()->whereHas('messages')->withCount('messages')->get();
 
-        return view('account.messages', compact('messages'));
+        return view('account.messages', compact('messages', 'box', 'unreadIds', 'listings'));
+    }
+
+    public function archiveMessage(Request $request, \App\Models\Message $message)
+    {
+        abort_unless($message->recipient_id === $request->user()->id, 403);
+        $message->forceFill(['archived_at' => $message->archived_at ? null : now()])->save();
+
+        return back()->with('status', $message->archived_at ? 'Zpráva archivována.' : 'Zpráva obnovena.');
     }
 }

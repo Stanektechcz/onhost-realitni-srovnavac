@@ -15,7 +15,7 @@ class Listing extends Model
 
     public const STATUSES = ['draft', 'pending', 'active', 'expired', 'rejected'];
 
-    protected $guarded = ['id', 'user_id', 'status', 'source', 'views', 'published_at', 'expires_at', 'moderation_note', 'slug'];
+    protected $guarded = ['id', 'user_id', 'status', 'source', 'views', 'published_at', 'expires_at', 'moderation_note', 'slug', 'boosted_until', 'renewed_at'];
 
     protected function casts(): array
     {
@@ -25,6 +25,7 @@ class Listing extends Model
             'floor' => 'integer',
             'has_elevator' => 'boolean', 'has_balcony' => 'boolean', 'has_parking' => 'boolean', 'pets_allowed' => 'boolean',
             'available_from' => 'date', 'published_at' => 'datetime', 'expires_at' => 'datetime',
+            'boosted_until' => 'datetime', 'renewed_at' => 'datetime',
         ];
     }
 
@@ -33,6 +34,9 @@ class Listing extends Model
         static::creating(function (Listing $l) {
             $l->slug ??= Str::lower(Str::random(10));
         });
+        $flush = fn () => \Illuminate\Support\Facades\Cache::forget(\App\Services\MarketStats::CACHE_KEY);
+        static::saved($flush);
+        static::deleted($flush);
     }
 
     public function getRouteKeyName(): string { return 'slug'; }
@@ -40,6 +44,23 @@ class Listing extends Model
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
     public function photos(): HasMany { return $this->hasMany(ListingPhoto::class)->orderBy('position'); }
     public function reports(): HasMany { return $this->hasMany(Report::class); }
+    public function stats(): HasMany { return $this->hasMany(ListingStat::class); }
+    public function slots(): HasMany { return $this->hasMany(ViewingSlot::class)->orderBy('starts_at'); }
+    public function messages(): HasMany { return $this->hasMany(Message::class); }
+    public function favorites(): HasMany { return $this->hasMany(Favorite::class); }
+
+    public function isBoosted(): bool { return $this->boosted_until?->isFuture() ?? false; }
+
+    public function pricePerM2(): ?int
+    {
+        return $this->price_halere && $this->area_m2 > 0 ? (int) round($this->price_halere / 100 / $this->area_m2) : null;
+    }
+
+    /** Monthly cost for rent: rent + fees. */
+    public function monthlyCostHalere(): ?int
+    {
+        return $this->offer_type === 'rent' && $this->price_halere !== null ? $this->price_halere + (int) $this->fees_halere : null;
+    }
 
     /** Only internal, active, non-expired listings are ever shown publicly. */
     public function scopePublic(Builder $q): Builder
@@ -69,19 +90,64 @@ class Listing extends Model
           ->when($f['area_min'] ?? null, fn ($q, $v) => $q->where('area_m2', '>=', (float) $v))
           ->when($f['area_max'] ?? null, fn ($q, $v) => $q->where('area_m2', '<=', (float) $v))
           ->when($f['penb'] ?? null, fn ($q, $v) => $q->whereIn('penb', (array) $v))
-          ->when($f['furnishing'] ?? null, fn ($q, $v) => $q->where('furnishing', $v));
+          ->when($f['furnishing'] ?? null, fn ($q, $v) => $q->where('furnishing', $v))
+          ->when($f['q'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w->where('title', 'like', "%$v%")->orWhere('description', 'like', "%$v%")->orWhere('street', 'like', "%$v%")))
+          ->when($f['floor_min'] ?? null, fn ($q, $v) => $q->where('floor', '>=', (int) $v))
+          ->when($f['available_by'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w->whereNull('available_from')->orWhere('available_from', '<=', $v)))
+          ->when($f['bbox'] ?? null, function ($q, $v) {
+              [$w, $s, $e, $n] = array_map('floatval', explode(',', $v));
+              $q->whereBetween('lat', [min($s, $n), max($s, $n)])->whereBetween('lng', [min($w, $e), max($w, $e)]);
+          })
+          ->when($f['poly'] ?? null, function ($q, $v) {
+              $poly = self::parsePolygon($v);
+              if (count($poly) < 3) {
+                  return;
+              }
+              $lats = array_column($poly, 1);
+              $lngs = array_column($poly, 0);
+              $ids = (clone $q)->whereBetween('lat', [min($lats), max($lats)])->whereBetween('lng', [min($lngs), max($lngs)])
+                  ->limit(5000)->get(['id', 'lat', 'lng'])
+                  ->filter(fn ($l) => self::pointInPolygon((float) $l->lng, (float) $l->lat, $poly))->pluck('id');
+              $q->whereIn('id', $ids);
+          });
         foreach (['has_balcony', 'has_elevator', 'has_parking', 'pets_allowed'] as $flag) {
             if (! empty($f[$flag])) {
                 $q->where($flag, true);
             }
         }
 
+        if (($f['sort'] ?? 'newest') === 'newest') {
+            $q->orderByRaw('CASE WHEN boosted_until IS NOT NULL AND boosted_until > ? THEN 1 ELSE 0 END DESC', [now()]);
+        }
+
         return match ($f['sort'] ?? 'newest') {
             'price_asc' => $q->orderBy('price_halere'),
             'price_desc' => $q->orderByDesc('price_halere'),
             'area_desc' => $q->orderByDesc('area_m2'),
+            'ppm2_asc' => $q->whereNotNull('area_m2')->where('area_m2', '>', 0)->orderByRaw('price_halere / area_m2 ASC'),
             default => $q->orderByDesc('published_at')->orderByDesc('id'),
         };
+    }
+
+    /** "lng lat;lng lat;..." -> [[lng, lat], ...] (max 50 vertices). */
+    public static function parsePolygon(string $v): array
+    {
+        return collect(explode(';', $v))->take(50)->map(fn ($p) => array_map('floatval', preg_split('/[\s,]+/', trim($p))))
+            ->filter(fn ($p) => count($p) === 2 && abs($p[0]) <= 180 && abs($p[1]) <= 90)->values()->all();
+    }
+
+    public static function pointInPolygon(float $x, float $y, array $poly): bool
+    {
+        $in = false;
+        for ($i = 0, $j = count($poly) - 1; $i < count($poly); $j = $i++) {
+            [$xi, $yi] = $poly[$i];
+            [$xj, $yj] = $poly[$j];
+            if (($yi > $y) !== ($yj > $y) && $x < ($xj - $xi) * ($y - $yi) / (($yj - $yi) ?: 1e-12) + $xi) {
+                $in = ! $in;
+            }
+        }
+
+        return $in;
     }
 
     public function priceCzk(): ?int { return $this->price_halere === null ? null : intdiv($this->price_halere, 100); }

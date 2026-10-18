@@ -14,12 +14,13 @@ class PublicController extends Controller
         'pravidla-moderace' => 'Pravidla moderace a nahlašování obsahu (DSA)',
     ];
 
-    public function home()
+    public function home(\App\Services\MarketStats $stats)
     {
         $latest = Listing::public()->with('photos')->latest('published_at')->limit(8)->get();
         $count = Listing::public()->count();
+        $districts = $stats->districts()->filter(fn ($d) => $d['rent']['enough'] || $d['sale']['enough'])->take(6);
 
-        return view('home', compact('latest', 'count'));
+        return view('home', compact('latest', 'count', 'districts'));
     }
 
     public function legal(string $page)

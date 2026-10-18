@@ -6,12 +6,15 @@ return [
         'memberships' => (bool) env('REALITY_FEATURE_MEMBERSHIPS', false),
         'payments' => (bool) env('REALITY_FEATURE_PAYMENTS', false),
         'commissions' => (bool) env('REALITY_FEATURE_COMMISSIONS', false),
+        'boost' => (bool) env('REALITY_FEATURE_BOOST', false),
     ],
 
     'listing_lifetime_days' => (int) env('REALITY_LISTING_LIFETIME_DAYS', 60),
     'per_page' => 12,
     'max_photos' => 20,
     'photo' => ['max_kb' => 8192, 'max_width' => 1600, 'thumb_width' => 480, 'quality' => 80],
+
+    'boost' => ['price_halere' => 19900, 'days' => 7],
 
     'payments' => [
         'provider' => env('REALITY_PAYMENT_PROVIDER', 'stub'), // stub | comgate (not implemented yet)

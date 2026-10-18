@@ -10,6 +10,10 @@ use App\Http\Controllers\PublicController;
 use App\Http\Controllers\SearchController;
 use App\Http\Middleware\EnsureAdmin;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\InsightsController;
+use App\Http\Controllers\OwnerToolsController;
+use App\Http\Controllers\ToolsController;
+use App\Http\Controllers\ViewingController;
 
 Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/hledat', [SearchController::class, 'index'])->name('search');
@@ -63,4 +67,34 @@ Route::middleware('auth')->group(function () {
         Route::post('/nahlaseni/{report}', [AdminController::class, 'resolveReport'])->middleware('password.confirm')->name('reports.resolve');
         Route::get('/statistiky', [AdminController::class, 'stats'])->name('stats');
     });
+});
+
+// --- Portal: analytics, tools, owner tools ---
+
+Route::get('/lokality', [InsightsController::class, 'index'])->name('insights.index');
+Route::get('/lokality/{slug}', [InsightsController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('insights.show');
+Route::get('/api/lokality/heat', [InsightsController::class, 'heat'])->middleware('throttle:60,1')->name('insights.heat');
+Route::get('/kalkulacky', [ToolsController::class, 'calculators'])->name('tools.calculators');
+Route::get('/pruvodce', [ToolsController::class, 'guides'])->name('guides.index');
+Route::get('/pruvodce/{slug}', [ToolsController::class, 'guide'])->where('slug', '[a-z0-9-]+')->name('guides.show');
+Route::get('/porovnat', [ToolsController::class, 'compare'])->name('compare');
+
+Route::middleware('auth')->group(function () {
+    Route::patch('/moje/oblibene/{listing}/poznamka', [AccountController::class, 'favoriteNote'])->name('account.favorites.note');
+    Route::post('/moje/zpravy/{message}/archiv', [AccountController::class, 'archiveMessage'])->name('account.messages.archive');
+    Route::get('/moje/prohlidky', [ViewingController::class, 'index'])->name('account.viewings');
+    Route::post('/prohlidka/{slot}', [ViewingController::class, 'book'])->middleware('throttle:10,1')->name('viewings.book');
+    Route::delete('/prohlidka/{slot}', [ViewingController::class, 'cancel'])->name('viewings.cancel');
+
+    Route::get('/moje/odhad-ceny', [OwnerToolsController::class, 'estimate'])->name('owner.estimate');
+    Route::get('/moje/smlouvy', [OwnerToolsController::class, 'contracts'])->name('owner.contracts');
+    Route::get('/moje/smlouvy/{slug}', [OwnerToolsController::class, 'contract'])->where('slug', '[a-z0-9-]+')->name('owner.contract');
+    Route::get('/moje/inzeraty/{listing}/nastroje', [OwnerToolsController::class, 'tools'])->name('owner.tools');
+    Route::post('/moje/inzeraty/{listing}/obnovit', [OwnerToolsController::class, 'renew'])->name('owner.renew');
+    Route::post('/moje/inzeraty/{listing}/topovat', [OwnerToolsController::class, 'boost'])->middleware('password.confirm')->name('owner.boost');
+    Route::post('/moje/inzeraty/{listing}/terminy', [OwnerToolsController::class, 'storeSlots'])->name('owner.slots.store');
+    Route::delete('/moje/inzeraty/{listing}/terminy/{slot}', [OwnerToolsController::class, 'destroySlot'])->name('owner.slots.destroy');
+    Route::get('/moje/inzeraty/{listing}/predavaci-protokol', [OwnerToolsController::class, 'handover'])->name('owner.handover');
+    Route::post('/moje/inzeraty/{listing}/predavaci-protokol', [OwnerToolsController::class, 'storeHandover'])->name('owner.handover.store');
+    Route::get('/moje/inzeraty/{listing}/predavaci-protokol/{protocol}', [OwnerToolsController::class, 'printHandover'])->name('owner.handover.print');
 });
