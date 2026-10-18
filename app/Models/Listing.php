@@ -13,6 +13,9 @@ class Listing extends Model
 {
     use HasFactory;
 
+    /** internal = our advertisers and agency feeds; gov = public-sector offers (state property register). Never imported. */
+    public const PUBLIC_SOURCES = ['internal', 'gov'];
+
     public const STATUSES = ['draft', 'pending', 'active', 'expired', 'rejected'];
 
     protected $guarded = ['id', 'user_id', 'status', 'source', 'views', 'published_at', 'expires_at', 'moderation_note', 'slug', 'boosted_until', 'renewed_at'];
@@ -62,10 +65,12 @@ class Listing extends Model
         return $this->offer_type === 'rent' && $this->price_halere !== null ? $this->price_halere + (int) $this->fees_halere : null;
     }
 
-    /** Only internal, active, non-expired listings are ever shown publicly. */
+    public function isGov(): bool { return $this->source === 'gov'; }
+
+    /** Only internal/gov, active, non-expired listings are ever shown publicly. */
     public function scopePublic(Builder $q): Builder
     {
-        return $q->where('source', 'internal')
+        return $q->whereIn('source', self::PUBLIC_SOURCES)
             ->where('status', 'active')
             ->whereNotNull('published_at')
             ->where(fn ($w) => $w->whereNull('expires_at')->orWhere('expires_at', '>', now()));
@@ -75,7 +80,7 @@ class Listing extends Model
 
     public function isPublic(): bool
     {
-        return $this->source === 'internal' && $this->status === 'active' && $this->published_at
+        return in_array($this->source, self::PUBLIC_SOURCES, true) && $this->status === 'active' && $this->published_at
             && (! $this->expires_at || $this->expires_at->isFuture());
     }
 

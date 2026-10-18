@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::job(new ExpireListings)->hourly();
 Schedule::job(new SendSavedSearchAlerts)->dailyAt('07:00');
 Schedule::command('reality:benchmarks:fetch')->monthlyOn(5, '04:00');
+Schedule::command('reality:gov:fetch')->twiceDaily(6, 18);
 
 Artisan::command('reality:benchmarks:fetch {--csv : Also rewrite database/data/market_benchmarks_csu.csv} {--from-csv : Load committed CSV instead of downloading}', function (App\Services\Benchmarks\CsuBenchmarks $csu) {
     $path = base_path(App\Services\Benchmarks\CsuBenchmarks::CSV_PATH);

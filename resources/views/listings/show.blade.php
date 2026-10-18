@@ -195,7 +195,7 @@
                 <p class="font-display text-3xl font-extrabold">{{ \App\Models\Listing::formatCzk($l->price_halere) }}@if ($l->offer_type === 'rent')<span class="text-base font-normal text-muted-foreground"> / měsíc</span>@endif</p>
                 @if ($l->fees_halere)<p class="text-sm text-muted-foreground">+ poplatky {{ \App\Models\Listing::formatCzk($l->fees_halere) }}</p>@endif
                 <div class="mt-4 grid gap-2">
-                    @if ($l->isPublic())<a href="#kontakt" class="btn-primary w-full"><x-icon name="mail" class="h-4 w-4" /> Napsat inzerentovi</a>@endif
+                    @if ($l->isGov())<a href="{{ $l->source_url }}" rel="noopener nofollow" target="_blank" class="btn-primary w-full"><x-icon name="mail" class="h-4 w-4" /> Kontakt u nabízejícího úřadu</a><p class="text-xs text-muted-foreground">Nabídka státu z Rejstříku nepotřebného nemovitého majetku. Podmínky prodeje a kontakt najdete u zdroje.</p>@elseif ($l->isPublic())<a href="#kontakt" class="btn-primary w-full"><x-icon name="mail" class="h-4 w-4" /> Napsat inzerentovi</a>@endif
                     @if ($slots->isNotEmpty() || $myBooking)<a href="#prohlidka" class="btn-outline w-full"><x-icon name="calendar" class="h-4 w-4" /> Rezervovat prohlídku</a>@endif
                     @auth
                         @if ($l->isPublic())
@@ -240,7 +240,7 @@
                 </section>
             @endif
 
-            @if ($l->isPublic())
+            @if ($l->isPublic() && $l->user_id)
             <form method="POST" action="{{ route('listings.message', $l) }}" class="card space-y-3 p-6" id="kontakt">
                 @csrf
                 <h2 class="font-display text-xl font-bold">Napsat inzerentovi</h2>
