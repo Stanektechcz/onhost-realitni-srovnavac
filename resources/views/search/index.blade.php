@@ -4,9 +4,9 @@
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" crossorigin>
 @endpush
 @section('content')
-<div class="mx-auto max-w-7xl px-4 py-6" x-data="{ filters: false, view: 'list' }">
+<div class="container-page py-6" x-data="{ filters: false, view: 'list' }">
     <div class="flex flex-wrap items-center justify-between gap-2">
-        <h1 class="font-display text-3xl font-bold">{{ isset($f['offer_type']) ? config('reality.offer_types')[$f['offer_type']] : 'Všechny nabídky' }} <span class="text-lg font-normal text-gray-500">({{ $listings->total() }})</span></h1>
+        <h1 class="text-3xl font-bold md:text-4xl">{{ isset($f['offer_type']) ? config('reality.offer_types')[$f['offer_type']] : 'Všechny nabídky' }} <span class="text-lg font-normal text-gray-500">({{ $listings->total() }})</span></h1>
         <div class="flex gap-2">
             <button type="button" class="btn-ghost lg:hidden" @click="filters = !filters">Filtry</button>
             <button type="button" class="btn-ghost" @click="view = view === 'list' ? 'map' : 'list'; if (view === 'map') $nextTick(() => window.initMap && window.initMap())" x-text="view === 'list' ? 'Mapa' : 'Seznam'">Mapa</button>
@@ -27,7 +27,7 @@
                 <legend class="label">Dispozice</legend>
                 <div class="flex flex-wrap gap-1">
                     @foreach (config('reality.dispositions') as $d)
-                        <label class="cursor-pointer"><input type="checkbox" name="disposition[]" value="{{ $d }}" class="peer sr-only" @checked(in_array($d, $f['disposition'] ?? []))><span class="chip peer-checked:bg-pink peer-checked:text-white">{{ $d }}</span></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="disposition[]" value="{{ $d }}" class="peer sr-only" @checked(in_array($d, $f['disposition'] ?? []))><span class="chip peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground">{{ $d }}</span></label>
                     @endforeach
                 </div>
             </fieldset>
@@ -41,13 +41,13 @@
                 <legend class="label">PENB</legend>
                 <div class="flex flex-wrap gap-1">
                     @foreach (config('reality.penb') as $p)
-                        <label class="cursor-pointer"><input type="checkbox" name="penb[]" value="{{ $p }}" class="peer sr-only" @checked(in_array($p, $f['penb'] ?? []))><span class="chip peer-checked:bg-pink peer-checked:text-white">{{ $p === 'none' ? 'nevydán' : $p }}</span></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="penb[]" value="{{ $p }}" class="peer sr-only" @checked(in_array($p, $f['penb'] ?? []))><span class="chip peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground">{{ $p === 'none' ? 'nevydán' : $p }}</span></label>
                     @endforeach
                 </div>
             </fieldset>
             <div class="space-y-1 text-sm">
                 @foreach (['has_balcony' => 'Balkon / terasa', 'has_elevator' => 'Výtah', 'has_parking' => 'Parkování', 'pets_allowed' => 'Mazlíčci povoleni'] as $k => $v)
-                    <label class="flex items-center gap-2"><input type="checkbox" name="{{ $k }}" value="1" class="rounded text-pink" @checked(! empty($f[$k]))> {{ $v }}</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" name="{{ $k }}" value="1" class="rounded accent-[var(--accent)]" @checked(! empty($f[$k]))> {{ $v }}</label>
                 @endforeach
             </div>
             <div>

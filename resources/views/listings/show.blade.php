@@ -31,7 +31,7 @@
 @if ($l->lat)<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" crossorigin>@endif
 @endpush
 @section('content')
-<div class="mx-auto max-w-7xl px-4 py-6">
+<div class="container-page py-6">
     @unless ($l->isPublic())
         <div class="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Náhled — inzerát není veřejný (stav: {{ $l->status }}).@if ($l->moderation_note) Odůvodnění moderace: {{ $l->moderation_note }}@endif</div>
     @endunless
@@ -46,17 +46,17 @@
                             <img src="{{ $p->url() }}" alt="Fotografie {{ $idx + 1 }} – {{ $l->displayTitle() }}" class="h-full w-full object-cover" loading="{{ $idx ? 'lazy' : 'eager' }}" decoding="async" width="{{ $p->width }}" height="{{ $p->height }}">
                         </picture>
                     @empty
-                        <div class="flex h-full items-center justify-center bg-gradient-to-br from-plum to-ink font-display text-5xl font-bold text-white/80">{{ $l->disposition }}</div>
+                        <div class="flex h-full items-center justify-center bg-space font-display text-5xl font-bold ">{{ $l->disposition }}</div>
                     @endforelse
                     @if ($l->photos->count() > 1)
                         <button class="absolute left-2 top-1/2 rounded-full bg-white/90 p-2 shadow" @click="i = (i - 1 + n) % n" aria-label="Předchozí">‹</button>
                         <button class="absolute right-2 top-1/2 rounded-full bg-white/90 p-2 shadow" @click="i = (i + 1) % n" aria-label="Další">›</button>
-                        <span class="absolute bottom-2 right-2 rounded-full bg-ink/80 px-2 py-0.5 text-xs text-white" x-text="(i + 1) + ' / ' + n"></span>
+                        <span class="absolute bottom-2 right-2 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white" x-text="(i + 1) + ' / ' + n"></span>
                     @endif
                 </div>
             </div>
 
-            <h1 class="mt-6 font-display text-3xl font-bold sm:text-4xl">{{ $l->displayTitle() }}</h1>
+            <h1 class="mt-6 text-3xl font-bold md:text-4xl sm:text-4xl">{{ $l->displayTitle() }}</h1>
             <p class="text-gray-600">{{ $l->locationLabel() }}</p>
 
             @if ($l->penb === 'none')

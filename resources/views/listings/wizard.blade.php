@@ -6,7 +6,7 @@
     <ol class="mt-4 grid grid-cols-5 gap-1 text-center text-xs">
         @foreach (\App\Support\ListingSteps::STEPS as $n => $name)
             <li>
-                @if ($l->exists)<a href="{{ route('listings.step', [$l, $n]) }}" @class(['block rounded-lg px-1 py-2', 'bg-pink text-white' => $n === $step, 'bg-plum-50 text-plum' => $n !== $step])>@else<span @class(['block rounded-lg px-1 py-2', 'bg-pink text-white' => $n === $step, 'bg-plum-50 text-gray-400' => $n !== $step])>@endif
+                @if ($l->exists)<a href="{{ route('listings.step', [$l, $n]) }}" @class(['block rounded-lg px-1 py-2', 'bg-accent text-accent-foreground' => $n === $step, 'bg-plum-50 text-plum' => $n !== $step])>@else<span @class(['block rounded-lg px-1 py-2', 'bg-accent text-accent-foreground' => $n === $step, 'bg-plum-50 text-gray-400' => $n !== $step])>@endif
                 <span class="font-bold">{{ $n }}</span><span class="hidden sm:block">{{ $name }}</span>
                 {!! $l->exists ? '</a>' : '</span>' !!}
             </li>
