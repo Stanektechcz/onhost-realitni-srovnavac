@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+
+@source '../../storage/framework/views/*.php';
+@source '../views';
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'League Spartan', 'Inter', ui-sans-serif, sans-serif;
+    --color-ink: #12001E;
+    --color-plum: #3C096C;
+    --color-plum-50: #F5EEFB;
+    --color-plum-100: #E9DAF6;
+    --color-pink: #F72585;
+    --color-pink-600: #D81B70;
+}
+
+@layer base {
+    h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
+    [x-cloak] { display: none !important; }
+}
+
+@utility btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-pink focus-visible:ring-offset-2 disabled:opacity-50;
+}
+
+@utility btn-primary {
+    @apply btn bg-pink text-white hover:bg-pink-600;
+}
+
+@utility btn-dark {
+    @apply btn bg-plum text-white hover:bg-ink;
+}
+
+@utility btn-ghost {
+    @apply btn border border-plum-100 bg-white text-plum hover:bg-plum-50;
+}
+
+@utility input {
+    @apply block w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-ink shadow-sm placeholder:text-gray-400 focus:border-pink focus:ring-2 focus:ring-pink/30 focus:outline-none;
+}
+
+@utility label {
+    @apply mb-1 block text-sm font-medium text-ink;
+}
+
+@utility card {
+    @apply rounded-2xl border border-plum-100 bg-white shadow-sm;
+}
+
+@utility chip {
+    @apply inline-flex items-center rounded-full bg-plum-50 px-2.5 py-0.5 text-xs font-medium text-plum;
+}
+
+@utility err {
+    @apply mt-1 text-sm text-red-600;
+}
+

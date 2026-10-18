@@ -1,0 +1,36 @@
+<?php
+
+return [
+    'accepted' => 'Pole :attribute musí být potvrzeno.',
+    'array' => 'Pole :attribute musí být seznam.',
+    'between' => ['numeric' => 'Hodnota :attribute musí být mezi :min a :max.'],
+    'boolean' => 'Pole :attribute musí být ano/ne.',
+    'confirmed' => 'Potvrzení pole :attribute nesouhlasí.',
+    'current_password' => 'Heslo není správné.',
+    'date' => 'Pole :attribute musí být platné datum.',
+    'dimensions' => 'Obrázek :attribute má nevhodné rozměry.',
+    'email' => 'Pole :attribute musí být platná e-mailová adresa.',
+    'image' => 'Soubor :attribute musí být obrázek.',
+    'in' => 'Zvolená hodnota pole :attribute je neplatná.',
+    'integer' => 'Pole :attribute musí být celé číslo.',
+    'max' => ['array' => 'Pole :attribute může mít nejvýše :max položek.', 'file' => 'Soubor :attribute může mít nejvýše :max kB.', 'numeric' => 'Hodnota :attribute může být nejvýše :max.', 'string' => 'Pole :attribute může mít nejvýše :max znaků.'],
+    'mimes' => 'Soubor :attribute musí být typu: :values.',
+    'min' => ['array' => 'Pole :attribute musí mít alespoň :min položek.', 'file' => 'Soubor :attribute musí mít alespoň :min kB.', 'numeric' => 'Hodnota :attribute musí být alespoň :min.', 'string' => 'Pole :attribute musí mít alespoň :min znaků.'],
+    'numeric' => 'Pole :attribute musí být číslo.',
+    'password' => ['min' => 'Heslo musí mít alespoň :min znaků.', 'letters' => 'Heslo musí obsahovat písmeno.', 'mixed' => 'Heslo musí obsahovat malé i velké písmeno.', 'numbers' => 'Heslo musí obsahovat číslici.', 'symbols' => 'Heslo musí obsahovat symbol.', 'uncompromised' => 'Toto heslo se objevilo v úniku dat, zvolte jiné.'],
+    'required' => 'Pole :attribute je povinné.',
+    'required_if' => 'Pole :attribute je povinné, když :other je :value.',
+    'string' => 'Pole :attribute musí být text.',
+    'unique' => ':attribute je již použit.',
+    'uploaded' => 'Soubor :attribute se nepodařilo nahrát.',
+
+    'attributes' => [
+        'name' => 'jméno', 'email' => 'e-mail', 'password' => 'heslo', 'role' => 'role', 'terms' => 'souhlas s podmínkami',
+        'offer_type' => 'typ nabídky', 'property_type' => 'typ nemovitosti', 'disposition' => 'dispozice', 'area_m2' => 'plocha',
+        'price_czk' => 'cena', 'fees_czk' => 'poplatky', 'deposit_czk' => 'kauce', 'city' => 'město', 'district' => 'čtvrť',
+        'street' => 'ulice', 'lat' => 'zeměpisná šířka', 'lng' => 'zeměpisná délka', 'penb' => 'PENB', 'furnishing' => 'vybavenost',
+        'floor' => 'patro', 'available_from' => 'dostupné od', 'description' => 'popis', 'title' => 'titulek', 'photos' => 'fotografie',
+        'body' => 'zpráva', 'gdpr' => 'souhlas se zpracováním údajů', 'reason' => 'důvod', 'good_faith' => 'prohlášení o dobré víře',
+        'decision_reason' => 'odůvodnění', 'phone' => 'telefon',
+    ],
+];
