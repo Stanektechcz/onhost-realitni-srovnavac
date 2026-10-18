@@ -46,6 +46,8 @@ class AgencyListingService
             'has_parking' => ['nullable', 'boolean'],
             'pets_allowed' => ['nullable', 'boolean'],
             'available_from' => ['nullable', 'date'],
+            'photos' => ['nullable', 'array', 'max:'.config('reality.max_photos')],
+            'photos.*' => ['required', 'string', 'max:2048', 'url:https', 'distinct'],
         ];
     }
 
@@ -67,6 +69,9 @@ class AgencyListingService
             $this->moderate($listing, $agency);
         }
         $listing->save();
+        if (array_key_exists('photos', $d)) {
+            \App\Jobs\ImportFeedPhotos::dispatchIfChanged($listing, $d['photos'] ?? []);
+        }
 
         return ['listing' => $listing, 'created' => ! $exists];
     }

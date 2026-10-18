@@ -9,6 +9,7 @@ Schedule::job(new ExpireListings)->hourly();
 Schedule::job(new SendSavedSearchAlerts)->dailyAt('07:00');
 Schedule::command('reality:benchmarks:fetch')->monthlyOn(5, '04:00');
 Schedule::command('reality:gov:fetch')->twiceDaily(6, 18);
+Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')->everyMinute()->withoutOverlapping();
 
 Artisan::command('reality:benchmarks:fetch {--csv : Also rewrite database/data/market_benchmarks_csu.csv} {--from-csv : Load committed CSV instead of downloading}', function (App\Services\Benchmarks\CsuBenchmarks $csu) {
     $path = base_path(App\Services\Benchmarks\CsuBenchmarks::CSV_PATH);
