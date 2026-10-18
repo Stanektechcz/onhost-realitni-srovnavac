@@ -34,6 +34,7 @@ it('lists public listings in the sitemap only', function () {
 
 it('seeds about forty fictional Prague rentals', function () {
     $this->seed();
-    expect(Listing::where('city', 'Praha')->where('offer_type', 'rent')->count())->toBe(40)
+    expect(Listing::where('source', 'internal')->where('city', 'Praha')->where('offer_type', 'rent')->count())->toBe(40)
+        ->and(Listing::where('source', 'internal')->where('offer_type', 'sale')->count())->toBe(20)
         ->and(Listing::public()->count())->toBeGreaterThan(30);
 });

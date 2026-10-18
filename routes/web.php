@@ -10,6 +10,10 @@ use App\Http\Controllers\PublicController;
 use App\Http\Controllers\SearchController;
 use App\Http\Middleware\EnsureAdmin;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\InsightsController;
+use App\Http\Controllers\OwnerToolsController;
+use App\Http\Controllers\ToolsController;
+use App\Http\Controllers\ViewingController;
 
 Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/hledat', [SearchController::class, 'index'])->name('search');
@@ -20,6 +24,7 @@ Route::post('/inzerat/{listing}/nahlasit', [ContactController::class, 'report'])
 Route::get('/clenstvi', [PublicController::class, 'pricing'])->name('pricing');
 Route::get('/info/{page}', [PublicController::class, 'legal'])->name('legal');
 Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
+Route::get('/sitemap-{page}.xml', [PublicController::class, 'sitemapPart'])->whereNumber('page')->name('sitemap.part');
 Route::get('/robots.txt', [PublicController::class, 'robots']);
 
 Route::middleware('guest')->group(function () {
@@ -50,6 +55,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/moje/inzeraty/{listing}/krok/{step}', [ListingController::class, 'saveStep'])->whereNumber('step')->name('listings.step.save');
     Route::post('/moje/inzeraty/{listing}/fotky', [ListingController::class, 'uploadPhotos'])->middleware('throttle:30,1')->name('listings.photos');
     Route::delete('/moje/inzeraty/{listing}/fotky/{photo}', [ListingController::class, 'deletePhoto'])->name('listings.photos.destroy');
+    Route::get('/api/adresa', [\App\Http\Controllers\ListingAssistController::class, 'addressSuggest'])->middleware('throttle:geocode')->name('assist.address');
+    Route::get('/api/adresa/detail', [\App\Http\Controllers\ListingAssistController::class, 'addressResolve'])->middleware('throttle:geocode')->name('assist.address.resolve');
+    Route::get('/api/odhad-ceny', [\App\Http\Controllers\ListingAssistController::class, 'priceSuggest'])->middleware('throttle:30,1')->name('assist.price');
+    Route::post('/moje/inzeraty/{listing}/navrh-popisu', [\App\Http\Controllers\ListingAssistController::class, 'describe'])->middleware('throttle:30,1')->name('assist.describe');
     Route::post('/moje/inzeraty/{listing}/odeslat', [ListingController::class, 'submit'])->name('listings.submit');
     Route::delete('/moje/inzeraty/{listing}', [ListingController::class, 'destroy'])->middleware('password.confirm')->name('listings.destroy');
 
@@ -64,3 +73,46 @@ Route::middleware('auth')->group(function () {
         Route::get('/statistiky', [AdminController::class, 'stats'])->name('stats');
     });
 });
+
+// --- Portal: analytics, tools, owner tools ---
+
+Route::get('/lokality', [InsightsController::class, 'index'])->name('insights.index');
+Route::get('/lokality/{slug}', [InsightsController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('insights.show');
+Route::get('/pronajem/{slug}', [InsightsController::class, 'offer'])->where('slug', '[a-z0-9-]+')->name('localities.rent');
+Route::get('/prodej/{slug}', [InsightsController::class, 'offer'])->where('slug', '[a-z0-9-]+')->name('localities.sale');
+Route::get('/api/lokality/heat', [InsightsController::class, 'heat'])->middleware('throttle:60,1')->name('insights.heat');
+Route::get('/kalkulacky', [ToolsController::class, 'calculators'])->name('tools.calculators');
+Route::get('/pruvodce', [ToolsController::class, 'guides'])->name('guides.index');
+Route::get('/pruvodce/{slug}', [ToolsController::class, 'guide'])->where('slug', '[a-z0-9-]+')->name('guides.show');
+Route::get('/porovnat', [ToolsController::class, 'compare'])->name('compare');
+
+Route::middleware('auth')->group(function () {
+    Route::patch('/moje/oblibene/{listing}/poznamka', [AccountController::class, 'favoriteNote'])->name('account.favorites.note');
+    Route::post('/moje/zpravy/{message}/archiv', [AccountController::class, 'archiveMessage'])->name('account.messages.archive');
+    Route::get('/moje/prohlidky', [ViewingController::class, 'index'])->name('account.viewings');
+    Route::post('/prohlidka/{slot}', [ViewingController::class, 'book'])->middleware('throttle:10,1')->name('viewings.book');
+    Route::delete('/prohlidka/{slot}', [ViewingController::class, 'cancel'])->name('viewings.cancel');
+
+    Route::get('/moje/odhad-ceny', [OwnerToolsController::class, 'estimate'])->name('owner.estimate');
+    Route::get('/moje/smlouvy', [OwnerToolsController::class, 'contracts'])->name('owner.contracts');
+    Route::get('/moje/smlouvy/{slug}', [OwnerToolsController::class, 'contract'])->where('slug', '[a-z0-9-]+')->name('owner.contract');
+    Route::get('/moje/inzeraty/{listing}/nastroje', [OwnerToolsController::class, 'tools'])->name('owner.tools');
+    Route::post('/moje/inzeraty/{listing}/obnovit', [OwnerToolsController::class, 'renew'])->name('owner.renew');
+    Route::post('/moje/inzeraty/{listing}/topovat', [OwnerToolsController::class, 'boost'])->middleware('password.confirm')->name('owner.boost');
+    Route::post('/moje/inzeraty/{listing}/terminy', [OwnerToolsController::class, 'storeSlots'])->name('owner.slots.store');
+    Route::delete('/moje/inzeraty/{listing}/terminy/{slot}', [OwnerToolsController::class, 'destroySlot'])->name('owner.slots.destroy');
+    Route::get('/moje/inzeraty/{listing}/predavaci-protokol', [OwnerToolsController::class, 'handover'])->name('owner.handover');
+    Route::post('/moje/inzeraty/{listing}/predavaci-protokol', [OwnerToolsController::class, 'storeHandover'])->name('owner.handover.store');
+    Route::get('/moje/inzeraty/{listing}/predavaci-protokol/{protocol}', [OwnerToolsController::class, 'printHandover'])->name('owner.handover.print');
+});
+
+// --- Agency import feed (push API, token auth, no session/CSRF) ---
+Route::prefix('api/feed/v1')->middleware([\App\Http\Middleware\AuthenticateFeed::class, 'throttle:120,1'])
+    ->group(function () {
+        Route::get('/listings', [\App\Http\Controllers\Api\AgencyFeedController::class, 'index']);
+        Route::post('/listings', [\App\Http\Controllers\Api\AgencyFeedController::class, 'upsert']);
+        Route::delete('/listings/{externalId}', [\App\Http\Controllers\Api\AgencyFeedController::class, 'destroy'])->where('externalId', '[A-Za-z0-9._\-]+');
+    });
+
+// --- Sreality-compatible XML-RPC import for agency CRMs (session hash auth, no CSRF) ---
+Route::post('/import/RPC2', \App\Http\Controllers\Api\SrealityImportController::class)->middleware('throttle:300,1')->name('import.rpc2');

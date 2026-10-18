@@ -2,6 +2,9 @@
 
 Postup pro Adriana. **Nic z toho se nespouští automaticky** – vše dělá člověk na serveru.
 
+## 0. DNS
+Záznam `reality.onhost.cz` teď míří na 161.97.119.173 (jiný server, Apache). Změnit A záznam na **45.67.217.22** (aaPanel), jinak nepůjde SSL ani web.
+
 ## 1. Web
 1. aaPanel → **Website → Add site**: doména `reality.onhost.cz`, PHP **8.3** (nebo novější), bez FTP.
 2. Site → **Site directory**: Running directory (document root) = **`/public`**. Vypnout „Anti-XSS“ (open_basedir) jen pokud dělá problémy s `storage/`.
@@ -15,7 +18,7 @@ aaPanel → **Databases → Add**: název `reality`, uživatel `reality`, silné
 ## 3. Kód a .env
 ```bash
 cd /www/wwwroot/reality.onhost.cz
-git clone <repo-url> .          # nebo git init + remote, prázdný adresář
+git clone https://github.com/Stanektechcz/reality-onhost.git .        # nebo git init + remote, prázdný adresář
 cp .env.example .env
 nano .env    # APP_ENV=production, APP_DEBUG=false, APP_URL=https://reality.onhost.cz,
              # DB_CONNECTION=mariadb + DB_*, MAIL_MAILER=log (zatím), QUEUE_CONNECTION=database,

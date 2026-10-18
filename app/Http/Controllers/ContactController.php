@@ -38,6 +38,7 @@ class ContactController extends Controller
             'relay_token' => Str::random(32),
             'ip' => $request->ip(),
         ]);
+        \App\Models\ListingStat::bump($listing, 'inquiries');
         Mail::to($listing->user->email)->queue(new ListingInquiry($msg));
 
         return back()->with('status', 'Zpráva byla odeslána. Inzerent uvidí jen maskovanou adresu, odpověď přijde přes portál.');

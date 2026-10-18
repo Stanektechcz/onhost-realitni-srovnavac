@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Favorite extends Model
 {
-    protected $fillable = ['user_id', 'listing_id'];
+    protected $fillable = ['user_id', 'listing_id', 'note'];
 
     public function listing(): BelongsTo { return $this->belongsTo(Listing::class); }
 }

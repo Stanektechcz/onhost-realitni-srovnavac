@@ -24,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::defaultView('vendor.pagination.simple-cz');
         RateLimiter::for('contact', fn (Request $r) => [Limit::perMinute(3)->by($r->ip()), Limit::perDay(30)->by($r->ip())]);
+        RateLimiter::for('geocode', fn (Request $r) => [Limit::perMinute(40)->by('u'.$r->user()?->id), Limit::perDay(1000)->by('u'.$r->user()?->id)]);
         RateLimiter::for('auth', fn (Request $r) => Limit::perMinute(6)->by(strtolower((string) $r->input('email')).'|'.$r->ip()));
     }
 }

@@ -14,6 +14,12 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(MarketBenchmarkSeeder::class); // real official data, allowed everywhere
+        if (app()->environment('production') && ! env('SEED_ALLOW_PRODUCTION')) {
+            $this->command?->error('Demo seeder se na produkci nespouští – data na webu musí být pravdivá.');
+
+            return;
+        }
         $adminPassword = env('SEED_ADMIN_PASSWORD') ?: Str::password(16);
         User::updateOrCreate(['email' => 'admin@example.test'], ['name' => 'Správce Demo', 'password' => $adminPassword, 'role' => 'admin']);
         $this->command?->warn("Admin: admin@example.test / heslo: ".(env('SEED_ADMIN_PASSWORD') ? '(z SEED_ADMIN_PASSWORD)' : $adminPassword));
@@ -60,6 +66,8 @@ class DatabaseSeeder extends Seeder
             ])->save();
         }
 
+        $this->seedSalesAndMarket($owners, $districts);
+
         foreach ([
             ['adv-free', 'Start', 'advertiser', 0, ['1 aktivní inzerát', 'Základní statistiky']],
             ['adv-plus', 'Plus', 'advertiser', 29900, ['5 aktivních inzerátů', 'Topování 1× týdně', 'Statistiky zobrazení']],
@@ -70,5 +78,65 @@ class DatabaseSeeder extends Seeder
             MembershipPlan::updateOrCreate(['code' => $code], ['name' => $name, 'audience' => $aud, 'price_halere' => $price, 'period_days' => 30, 'features' => $features, 'is_active' => true]);
         }
         CommissionRule::firstOrCreate(['service' => 'membership'], ['percent' => 0, 'fixed_halere' => 0, 'is_active' => true]);
+    }
+
+    /** Sale listings, aggregate-only imported market data, stats and viewing slots (all fictional). */
+    private function seedSalesAndMarket($owners, array $districts): void
+    {
+        $saleDisp = [['1+kk', 30, 4_300_000], ['2+kk', 55, 7_200_000], ['3+kk', 80, 10_100_000], ['3+1', 88, 10_900_000], ['4+kk', 110, 14_500_000]];
+        $premium = ['Vinohrady' => 1.15, 'Karlín' => 1.12, 'Dejvice' => 1.1, 'Letná' => 1.12, 'Holešovice' => 1.02, 'Smíchov' => 1.0, 'Žižkov' => 0.95, 'Nusle' => 0.93, 'Vršovice' => 0.97, 'Libeň' => 0.9, 'Břevnov' => 0.96, 'Strašnice' => 0.88];
+        for ($i = 0; $i < 20; $i++) {
+            [$district, $lat, $lng, $street] = $districts[$i % count($districts)];
+            [$d, $area, $price] = $saleDisp[mt_rand(0, count($saleDisp) - 1)];
+            $area += mt_rand(-3, 10);
+            $price = (int) round($price * ($premium[$district] ?? 1) * (mt_rand(92, 110) / 100) / 10000) * 10000;
+            $l = Listing::firstOrNew(['slug' => 'demo-prodej-'.($i + 1)]);
+            $l->forceFill([
+                'user_id' => $owners[$i % $owners->count()]->id, 'title' => null,
+                'description' => "Byt $d na prodej v lokalitě $district. FIKTIVNÍ UKÁZKOVÝ INZERÁT – nemovitost ani osoby neexistují.\n\nOsobní vlastnictví, dům po revitalizaci, sklep. Nízký fond oprav, klidná ulice, škola i obchody v docházkové vzdálenosti.",
+                'offer_type' => 'sale', 'property_type' => 'flat', 'disposition' => $d, 'area_m2' => $area,
+                'price_halere' => $price * 100, 'fees_halere' => null, 'deposit_halere' => null,
+                'city' => 'Praha', 'district' => $district, 'street' => $street,
+                'lat' => round($lat + (mt_rand(-60, 60) / 10000), 7), 'lng' => round($lng + (mt_rand(-60, 60) / 10000), 7),
+                'penb' => ['B', 'C', 'D', 'E'][$i % 4], 'furnishing' => 'partial', 'floor' => mt_rand(1, 7),
+                'has_elevator' => $i % 2 === 1, 'has_balcony' => $i % 3 === 1, 'has_parking' => $i % 4 === 0, 'pets_allowed' => true,
+                'status' => 'active', 'source' => 'internal', 'published_at' => now()->subDays($i * 3 + 1), 'expires_at' => now()->addDays(45),
+                'boosted_until' => $i === 0 ? now()->addDays(5) : null,
+            ])->save();
+        }
+
+        // Imported market data: used ONLY for aggregates (never shown individually).
+        for ($i = 0; $i < 160; $i++) {
+            [$district, $lat, $lng] = $districts[$i % count($districts)];
+            $rent = $i % 3 !== 0;
+            $area = mt_rand(26, 110);
+            $ppm2 = $rent ? mt_rand(330, 450) * ($premium[$district] ?? 1) : mt_rand(115_000, 150_000) * ($premium[$district] ?? 1);
+            $months = mt_rand(0, 11);
+            Listing::firstOrNew(['source_name' => 'demo-import', 'source_id' => (string) $i])->forceFill([
+                'slug' => 'imp-'.$i, 'offer_type' => $rent ? 'rent' : 'sale', 'property_type' => 'flat',
+                'disposition' => ['1+kk', '2+kk', '2+1', '3+kk', '3+1'][$i % 5], 'area_m2' => $area,
+                'price_halere' => (int) round($area * $ppm2 * (1 + $months * 0.004)) * 100,
+                'city' => 'Praha', 'district' => $district,
+                'lat' => round($lat + (mt_rand(-80, 80) / 10000), 7), 'lng' => round($lng + (mt_rand(-80, 80) / 10000), 7),
+                'penb' => 'D', 'status' => $months > 2 ? 'expired' : 'active', 'source' => 'imported', 'user_id' => null,
+                'published_at' => now()->subMonths($months)->subDays(mt_rand(0, 25)),
+            ])->save();
+        }
+
+        // Stats + viewing slots for demo internal listings.
+        $demo = Listing::where('slug', 'like', 'demo-%')->where('status', 'active')->get();
+        foreach ($demo as $idx => $l) {
+            for ($d = 0; $d < 30; $d++) {
+                \App\Models\ListingStat::updateOrCreate(['listing_id' => $l->id, 'day' => now()->subDays($d)->toDateString()],
+                    ['views' => mt_rand(0, 25), 'saves' => mt_rand(0, 2), 'inquiries' => mt_rand(0, 1), 'bookings' => 0]);
+            }
+            if ($idx < 10 && ! $l->slots()->exists()) {
+                foreach ([1, 2, 4] as $day) {
+                    foreach (['17:00', '17:30', '18:00'] as $t) {
+                        $l->slots()->create(['starts_at' => now()->addDays($day)->setTimeFromTimeString($t), 'duration_min' => 30]);
+                    }
+                }
+            }
+        }
     }
 }
