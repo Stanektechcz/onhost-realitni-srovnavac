@@ -174,3 +174,42 @@ it('reverses the charge when an admin refunds the payment', function () {
         ->and($u->subscriptions()->first()->status)->toBe('cancelled');
     Http::assertSent(fn (HttpRequest $r) => str_ends_with($r->url(), '/reversals') && $r['idempotency_key'] === 'reality-payment-'.$p->id.'-reversal' && $r['client_secret'] === 'test-secret');
 });
+
+it('resumes an open payment after an unavailable charge instead of charging twice', function () {
+    ohcEnable();
+    Http::fakeSequence(OHC_API.'/wallet/ecosystem/charges')->pushFailedConnection()->pushFailedConnection()->push(ohcCharge(true), 200);
+    $u = ohcUser();
+    $plan = ohcPlan();
+    ohcPay($this, $u, $plan)->assertRedirect(route('pricing'));
+    expect(Payment::sole()->status)->toBe('created')->and($u->subscriptions()->first()->status)->toBe('pending');
+    ohcPay($this, $u, $plan)->assertRedirect(route('dashboard'));
+    $p = Payment::sole();
+    $keys = collect(Http::recorded())->map(fn ($pair) => $pair[0]['idempotency_key'] ?? null)->filter()->unique()->values();
+    expect($p->status)->toBe('paid')->and($u->subscriptions()->count())->toBe(1)
+        ->and($u->subscriptions()->first()->status)->toBe('active')->and($keys->all())->toBe(['reality-payment-'.$p->id]);
+});
+
+it('does not reuse a failed payment', function () {
+    ohcEnable();
+    Http::fakeSequence(OHC_API.'/wallet/ecosystem/charges')
+        ->push(['error' => 'insufficient_funds', 'status' => 402], 402)->push(ohcCharge(), 201);
+    $u = ohcUser();
+    $plan = ohcPlan();
+    ohcPay($this, $u, $plan)->assertRedirect(route('pricing'));
+    ohcPay($this, $u, $plan)->assertRedirect(route('dashboard'));
+    expect(Payment::count())->toBe(2)->and(Payment::latest('id')->first()->status)->toBe('paid');
+});
+
+it('ignores an external Referer as the post-connect return target', function (string $referer, string $expected) {
+    ohcEnable();
+    $u = ohcUser(false);
+    $res = $this->actingAs($u)->withHeader('Referer', $referer)->get('/onhost/propojit');
+    parse_str(parse_url($res->headers->get('Location'), PHP_URL_QUERY), $q);
+    Http::fake(['https://id.onhost.test/oidc/token' => Http::response(['access_token' => str_repeat('b', 40), 'refresh_token' => 'rt-9', 'expires_in' => 600, 'scope' => 'openid email wallet:charge'])]);
+    $this->actingAs($u)->get('/onhost/callback?code=abc&state='.$q['state'])->assertRedirect(url($expected));
+})->with([
+    ['https://evil.example/phish', '/moje'],
+    ['//evil.example/x', '/moje'],
+    ['/\\evil.example', '/moje'],
+    ['http://localhost/clenstvi', '/clenstvi'],
+]);

@@ -6,12 +6,14 @@ use App\Models\AuditLog;
 use App\Models\MembershipPlan;
 use App\Models\Payment;
 use App\Models\Subscription;
+use App\Models\User;
 use App\Services\Onhost\OnhostCreditClient;
 use App\Services\Onhost\OnhostCreditException;
 use App\Services\Onhost\OnhostIdClient;
 use App\Services\Payments\CommissionCalculator;
 use App\Services\Payments\OnhostCreditPaymentProvider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /** ONhost ID connection + payment by ONhost credit. Every route is 404 while ONHOST_CREDIT_ENABLED is off. */
 class OnhostCreditController extends Controller
@@ -21,7 +23,7 @@ class OnhostCreditController extends Controller
         self::ensureEnabled();
         abort_unless($id->configured(), 503);
         $auth = $id->authorizationRequest();
-        $request->session()->put('onhost_oidc', ['state' => $auth['state'], 'verifier' => $auth['verifier'], 'back' => url()->previous(route('dashboard'))]);
+        $request->session()->put('onhost_oidc', ['state' => $auth['state'], 'verifier' => $auth['verifier'], 'back' => self::internalPath(url()->previous())]);
 
         return redirect()->away($auth['url']);
     }
@@ -43,7 +45,7 @@ class OnhostCreditController extends Controller
         }
         AuditLog::record('onhost.connected', $request->user());
 
-        return redirect()->to($pending['back'] ?? route('dashboard'))->with('status', 'Účet je propojen s ONhost ID.');
+        return redirect()->to(self::internalPath($pending['back'] ?? null) ?? route('dashboard'))->with('status', 'Účet je propojen s ONhost ID.');
     }
 
     public function disconnect(Request $request, OnhostIdClient $id)
@@ -65,14 +67,29 @@ class OnhostCreditController extends Controller
             return redirect()->route('onhost.connect');
         }
 
-        $sub = $user->subscriptions()->create(['membership_plan_id' => $plan->id, 'status' => 'pending']);
-        $payment = new Payment([
-            'user_id' => $user->id, 'service' => 'membership', 'provider' => $provider->name(),
-            'amount_halere' => $plan->price_halere, 'commission_halere' => $commission->forService('membership', $plan->price_halere),
-            'status' => 'created', 'meta' => ['plan' => $plan->code, 'description' => 'členství '.$plan->name],
-        ]);
-        $payment->payable()->associate($sub);
-        $payment->save();
+        // Reuse an open (`created`) payment for the same user + plan (e.g. left by a network failure), so a repeated
+        // POST resumes it with the same idempotency key instead of opening a second charge. The user row lock
+        // serialises concurrent requests of one user.
+        [$sub, $payment] = DB::transaction(function () use ($user, $plan, $provider, $commission) {
+            User::whereKey($user->id)->lockForUpdate()->first();
+            $open = Payment::where('user_id', $user->id)->where('provider', $provider->name())->where('service', 'membership')
+                ->where('status', 'created')->where('payable_type', (new Subscription)->getMorphClass())
+                ->whereIn('payable_id', Subscription::query()->where('user_id', $user->id)->where('membership_plan_id', $plan->id)->where('status', 'pending')->select('id'))
+                ->lockForUpdate()->latest('id')->first();
+            if ($open && $open->payable instanceof Subscription) {
+                return [$open->payable, $open];
+            }
+            $sub = $user->subscriptions()->create(['membership_plan_id' => $plan->id, 'status' => 'pending']);
+            $payment = new Payment([
+                'user_id' => $user->id, 'service' => 'membership', 'provider' => $provider->name(),
+                'amount_halere' => $plan->price_halere, 'commission_halere' => $commission->forService('membership', $plan->price_halere),
+                'status' => 'created', 'meta' => ['plan' => $plan->code, 'description' => 'členství '.$plan->name],
+            ]);
+            $payment->payable()->associate($sub);
+            $payment->save();
+
+            return [$sub, $payment];
+        });
 
         try {
             $provider->create($payment);
@@ -109,6 +126,23 @@ class OnhostCreditController extends Controller
         AuditLog::record('payment.refunded', $payment, ['provider' => $payment->provider]);
 
         return back()->with('status', 'Platba byla vrácena na kredit ONhost.');
+    }
+
+    /** Only same-site relative paths are kept as a return target (no open redirect via Referer). */
+    private static function internalPath(?string $url): ?string
+    {
+        if (! is_string($url) || $url === '') {
+            return null;
+        }
+        $root = rtrim(url('/'), '/');
+        if (str_starts_with($url, $root.'/') || $url === $root) {
+            $url = substr($url, strlen($root)) ?: '/';
+        }
+        if (! str_starts_with($url, '/') || str_starts_with($url, '//') || preg_match('/[\\\\\x00-\x1f]/', $url)) {
+            return null;
+        }
+
+        return $url;
     }
 
     private static function ensureEnabled(): void
