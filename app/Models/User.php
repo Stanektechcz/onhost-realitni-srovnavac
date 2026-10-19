@@ -37,4 +37,6 @@ class User extends Authenticatable
     public function savedSearches(): HasMany { return $this->hasMany(SavedSearch::class); }
     public function receivedMessages(): HasMany { return $this->hasMany(Message::class, 'recipient_id'); }
     public function subscriptions(): HasMany { return $this->hasMany(Subscription::class); }
+
+    public function onhostConnection(): \Illuminate\Database\Eloquent\Relations\HasOne { return $this->hasOne(OnhostConnection::class); }
 }
