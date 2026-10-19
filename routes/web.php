@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ListingController;
+use App\Http\Controllers\OnhostCreditController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\SearchController;
 use App\Http\Middleware\EnsureAdmin;
@@ -55,6 +56,12 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/clenstvi/{plan}', [BillingController::class, 'subscribe'])->middleware('password.confirm')->name('pricing.subscribe');
 
+    // ONhost ID + kredit ONhost (404 while ONHOST_CREDIT_ENABLED is off)
+    Route::get('/onhost/propojit', [OnhostCreditController::class, 'connect'])->middleware('throttle:10,1')->name('onhost.connect');
+    Route::get('/onhost/callback', [OnhostCreditController::class, 'callback'])->middleware('throttle:10,1')->name('onhost.callback');
+    Route::post('/onhost/odpojit', [OnhostCreditController::class, 'disconnect'])->name('onhost.disconnect');
+    Route::post('/clenstvi/{plan}/kredit', [OnhostCreditController::class, 'payPlan'])->middleware(['password.confirm', 'throttle:10,1'])->name('onhost.pay.plan');
+
     Route::prefix('admin')->name('admin.')->middleware(EnsureAdmin::class)->group(function () {
         Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/moderace', [AdminController::class, 'moderation'])->name('moderation');
@@ -62,5 +69,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/nahlaseni', [AdminController::class, 'reports'])->name('reports');
         Route::post('/nahlaseni/{report}', [AdminController::class, 'resolveReport'])->middleware('password.confirm')->name('reports.resolve');
         Route::get('/statistiky', [AdminController::class, 'stats'])->name('stats');
+        Route::post('/platby/{payment}/vratit-kredit', [OnhostCreditController::class, 'refund'])->middleware('password.confirm')->name('payments.onhost_refund');
     });
 });

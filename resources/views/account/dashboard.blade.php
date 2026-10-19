@@ -8,6 +8,7 @@
             <a href="{{ $href }}" class="card p-5 hover:shadow-md"><p class="font-display text-3xl font-bold text-pink">{{ $n }}</p><p class="text-sm font-semibold">{{ $label }}</p></a>
         @endforeach
     </div>
+    @if (config('onhost.credit.enabled'))<div class="mt-8">@include('partials.onhost-credit')</div>@endif
     <div class="card mt-8 p-5">
         <h2 class="font-display text-xl font-bold text-red-700">Smazání účtu</h2>
         <p class="text-sm text-gray-600">Nevratně smaže účet, inzeráty, oblíbené a hlídací psy. Vyžaduje potvrzení heslem.</p>
