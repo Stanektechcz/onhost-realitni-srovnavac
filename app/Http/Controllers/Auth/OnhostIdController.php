@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -106,6 +107,36 @@ class OnhostIdController extends Controller
         AuditLog::record('auth.oidc_login', $linked);
 
         return redirect()->intended(route('dashboard'));
+    }
+
+    /**
+     * Back-channel logout z id.onhost.cz: ukončí všechny relace uživatele s daným sub. Za vlastním příznakem
+     * ONHOST_OIDC_BACKCHANNEL (etapa I-3). Odpověď bez těla, chyby jen 400 bez detailu.
+     */
+    public function backchannelLogout(Request $request, OnhostIdClient $client)
+    {
+        abort_unless($client->enabled() && config('oidc.backchannel_logout'), 404);
+        $token = $request->input('logout_token');
+        if (! is_string($token) || strlen($token) > 8192) {
+            return response()->noContent(400)->header('Cache-Control', 'no-store');
+        }
+        try {
+            $sub = $client->verifyLogoutToken($token);
+        } catch (Throwable $e) {
+            AuditLog::record('auth.oidc_logout_rejected', null, ['reason' => Str::limit($e->getMessage(), 40, '')]);
+
+            return response()->noContent(400)->header('Cache-Control', 'no-store');
+        }
+        $user = User::where('onhost_sub', $sub)->first();
+        if ($user) {
+            if (config('session.driver') === 'database') {
+                DB::table(config('session.table', 'sessions'))->where('user_id', $user->id)->delete();
+            }
+            $user->forceFill(['remember_token' => Str::random(60)])->save();
+            AuditLog::record('auth.oidc_backchannel_logout', $user);
+        }
+
+        return response()->noContent(200)->header('Cache-Control', 'no-store');
     }
 
     private function start(Request $request, OnhostIdClient $client, bool $link)

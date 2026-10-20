@@ -9,6 +9,8 @@ return [
     // Prázdné = /auth/onhost/callback na APP_URL. Musí odpovídat registraci klienta u id.onhost.cz.
     'redirect_uri' => env('ONHOST_OIDC_REDIRECT_URI'),
     'scopes' => env('ONHOST_OIDC_SCOPES', 'openid email profile'),
+    // Back-channel logout (etapa I-3) – zapnout až po registraci URI u id.onhost.cz.
+    'backchannel_logout' => (bool) env('ONHOST_OIDC_BACKCHANNEL', false),
     'discovery_ttl' => 3600,
     'leeway' => 60,
     'timeout' => 10,
