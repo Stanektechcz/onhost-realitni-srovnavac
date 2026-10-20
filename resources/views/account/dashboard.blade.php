@@ -8,6 +8,19 @@
             <a href="{{ $href }}" class="card p-5 hover:shadow-md"><p class="font-display text-3xl font-bold text-pink">{{ $n }}</p><p class="text-sm font-semibold">{{ $label }}</p></a>
         @endforeach
     </div>
+    @if (app(\App\Auth\OnhostIdClient::class)->enabled())
+        <div class="card mt-8 p-5" data-oidc-panel>
+            <h2 class="font-display text-xl font-bold">ONhost ID</h2>
+            @error('onhost')<p class="text-sm text-red-700">{{ $message }}</p>@enderror
+            @if (auth()->user()->onhost_sub)
+                <p class="text-sm text-gray-600">Účet je propojen s ONhost ID.</p>
+                <form method="POST" action="{{ route('oidc.unlink') }}" class="mt-3">@csrf @method('DELETE')<button class="btn-ghost">Odpojit ONhost ID</button></form>
+            @else
+                <p class="text-sm text-gray-600">Propojení vyžaduje potvrzení hesla a přihlášení k ONhost ID.</p>
+                <a href="{{ route('oidc.link') }}" class="btn-ghost mt-3 inline-block">Propojit s ONhost ID</a>
+            @endif
+        </div>
+    @endif
     @if (config('onhost.credit.enabled'))<div class="mt-8">@include('partials.onhost-credit')</div>@endif
     <div class="card mt-8 p-5">
         <h2 class="font-display text-xl font-bold text-red-700">Smazání účtu</h2>

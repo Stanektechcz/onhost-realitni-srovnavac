@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\OnhostIdController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ListingController;
@@ -23,6 +24,10 @@ Route::get('/info/{page}', [PublicController::class, 'legal'])->name('legal');
 Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [PublicController::class, 'robots']);
 
+// ONhost ID (OIDC) – příznak ONHOST_OIDC_ENABLED (výchozí vypnuto → 404).
+Route::get('/auth/onhost', [OnhostIdController::class, 'redirect'])->middleware(['guest', 'throttle:auth'])->name('oidc.redirect');
+Route::get('/auth/onhost/callback', [OnhostIdController::class, 'callback'])->middleware('throttle:auth')->name('oidc.callback');
+
 Route::middleware('guest')->group(function () {
     Route::get('/registrace', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/registrace', [AuthController::class, 'register'])->middleware('throttle:auth');
@@ -36,6 +41,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/potvrdit-heslo', [AuthController::class, 'confirm'])->middleware('throttle:auth');
 
     Route::get('/moje', [AccountController::class, 'dashboard'])->name('dashboard');
+    Route::get('/moje/onhost-id/propojit', [OnhostIdController::class, 'link'])->middleware(['password.confirm', 'throttle:auth'])->name('oidc.link');
+    Route::delete('/moje/onhost-id', [OnhostIdController::class, 'unlink'])->middleware('password.confirm')->name('oidc.unlink');
     Route::delete('/moje/ucet', [AuthController::class, 'destroyAccount'])->middleware('password.confirm')->name('account.destroy');
     Route::get('/moje/oblibene', [AccountController::class, 'favorites'])->name('account.favorites');
     Route::post('/inzerat/{listing}/oblibene', [AccountController::class, 'toggleFavorite'])->name('listings.favorite');

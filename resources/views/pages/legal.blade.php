@@ -11,6 +11,7 @@
             <p>Osnova: portál používá pouze technicky nezbytné cookies (session, CSRF). Analytické či marketingové cookies nejsou nasazeny.</p>
         @elseif ($slug === 'ochrana-osobnich-udaju')
             <p>Osnova: správce, účely a právní základy zpracování, příjemci, doba uložení, práva subjektu údajů, kontakt na pověřence.</p>
+            <p>Přihlášení přes ONhost ID: od ONhostu (OSVČ Adrian Staněk, IČO 08094616) dostáváme identifikátor účtu, e-mail a jméno, základ čl. 6 odst. 1 písm. b) GDPR.</p>
         @else
             <p>Osnova: provozovatel, registrace, pravidla inzerce, placené služby (zatím neaktivní), odpovědnost, ukončení účtu, rozhodné právo.</p>
         @endif
