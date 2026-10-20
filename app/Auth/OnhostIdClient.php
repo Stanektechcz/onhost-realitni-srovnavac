@@ -90,6 +90,37 @@ class OnhostIdClient
         ];
     }
 
+    /**
+     * Ověří logout_token (OIDC Back-Channel Logout 1.0, §2.6): podpis, iss, aud, iat, jti, událost backchannel-logout,
+     * sub nebo sid a zákaz nonce. Vrací sub.
+     */
+    public function verifyLogoutToken(string $token): string
+    {
+        $c = Jwt::verifyRs256($token, $this->jwks($this->discovery()['jwks_uri']));
+        $aud = (array) ($c['aud'] ?? []);
+        $leeway = (int) config('oidc.leeway');
+        $fail = match (true) {
+            rtrim((string) ($c['iss'] ?? ''), '/') !== config('oidc.issuer') => 'bad_iss',
+            ! in_array(config('oidc.client_id'), $aud, true) => 'bad_aud',
+            ! isset($c['iat']) || abs(time() - (int) $c['iat']) > 300 + $leeway => 'bad_iat',
+            isset($c['exp']) && time() > $c['exp'] + $leeway => 'expired',
+            ! is_string($c['jti'] ?? null) || $c['jti'] === '' => 'no_jti',
+            ! is_array($c['events']['http://schemas.openid.net/event/backchannel-logout'] ?? null) => 'no_event',
+            array_key_exists('nonce', $c) => 'nonce_present',
+            ! is_string($c['sub'] ?? null) || $c['sub'] === '' => 'no_sub',
+            default => null,
+        };
+        if ($fail) {
+            throw new RuntimeException($fail);
+        }
+        // jednorázovost: stejné jti nesmí projít dvakrát
+        if (! Cache::add('oidc.logout_jti.'.hash('sha256', $c['jti']), 1, 600)) {
+            throw new RuntimeException('replay');
+        }
+
+        return $c['sub'];
+    }
+
     private function jwks(string $uri): array
     {
         return Cache::remember('oidc.jwks.'.md5($uri), (int) config('oidc.discovery_ttl'),

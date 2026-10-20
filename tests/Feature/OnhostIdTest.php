@@ -3,6 +3,7 @@
 use App\Auth\Jwt;
 use App\Models\User;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 /** Lokálně vygenerovaný RSA klíč pro podepsání testovacích JWT (nic se nestahuje). */
@@ -198,3 +199,49 @@ it('rejects an id_token signed by an unknown key', function () {
     oidcRoundTrip()->assertRedirect('/prihlaseni');
     $this->assertGuest();
 });
+
+function oidcLogoutToken(array $claims = []): string
+{
+    return oidcJwt($claims + ['iss' => 'https://id.onhost.test', 'aud' => 'reality', 'iat' => time(), 'jti' => bin2hex(random_bytes(8)),
+        'sub' => 'onhost-user-42', 'events' => ['http://schemas.openid.net/event/backchannel-logout' => new stdClass]]);
+}
+
+it('keeps back-channel logout off without its own flag', function () {
+    oidcEnable();
+    oidcFake();
+    $this->post('/auth/onhost/backchannel-logout', ['logout_token' => oidcLogoutToken()])->assertNotFound();
+});
+
+it('ends all sessions of the linked user on a valid back-channel logout', function () {
+    oidcEnable();
+    config(['oidc.backchannel_logout' => true, 'session.driver' => 'database']);
+    oidcFake();
+    $user = User::factory()->create();
+    $user->forceFill(['onhost_sub' => 'onhost-user-42', 'remember_token' => 'old'])->save();
+    $other = User::factory()->create();
+    DB::table('sessions')->insert([
+        ['id' => 's1', 'user_id' => $user->id, 'payload' => '', 'last_activity' => time()],
+        ['id' => 's2', 'user_id' => $other->id, 'payload' => '', 'last_activity' => time()],
+    ]);
+
+    $token = oidcLogoutToken();
+    $this->post('/auth/onhost/backchannel-logout', ['logout_token' => $token])->assertOk();
+    expect(DB::table('sessions')->where('user_id', $user->id)->exists())->toBeFalse()
+        ->and(DB::table('sessions')->where('id', 's2')->exists())->toBeTrue()
+        ->and($user->refresh()->remember_token)->not->toBe('old');
+    // replay stejného jti je odmítnut
+    $this->post('/auth/onhost/backchannel-logout', ['logout_token' => $token])->assertStatus(400);
+});
+
+it('rejects invalid logout tokens', function (array $claims) {
+    oidcEnable();
+    config(['oidc.backchannel_logout' => true]);
+    oidcFake();
+    $this->post('/auth/onhost/backchannel-logout', ['logout_token' => oidcLogoutToken($claims)])->assertStatus(400);
+})->with([
+    'aud' => [['aud' => 'someone-else']],
+    'iss' => [['iss' => 'https://evil.test']],
+    'nonce' => [['nonce' => 'x']],
+    'event' => [['events' => ['other' => new stdClass]]],
+    'stale iat' => [['iat' => time() - 3600]],
+]);

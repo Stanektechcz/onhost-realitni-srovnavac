@@ -11,6 +11,7 @@ use App\Http\Controllers\OnhostCreditController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\SearchController;
 use App\Http\Middleware\EnsureAdmin;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicController::class, 'home'])->name('home');
@@ -27,6 +28,8 @@ Route::get('/robots.txt', [PublicController::class, 'robots']);
 // ONhost ID (OIDC) – příznak ONHOST_OIDC_ENABLED (výchozí vypnuto → 404).
 Route::get('/auth/onhost', [OnhostIdController::class, 'redirect'])->middleware(['guest', 'throttle:auth'])->name('oidc.redirect');
 Route::get('/auth/onhost/callback', [OnhostIdController::class, 'callback'])->middleware('throttle:auth')->name('oidc.callback');
+Route::post('/auth/onhost/backchannel-logout', [OnhostIdController::class, 'backchannelLogout'])
+    ->withoutMiddleware([ValidateCsrfToken::class])->middleware('throttle:60,1')->name('oidc.backchannel');
 
 Route::middleware('guest')->group(function () {
     Route::get('/registrace', [AuthController::class, 'showRegister'])->name('register');

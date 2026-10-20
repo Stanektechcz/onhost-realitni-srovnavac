@@ -12,16 +12,17 @@ return [
         'currency' => 'CZK',
         // bonus credit may pay part of a charge (ONhost decides how much by family); purchased credit always pays 100 %
         'allow_bonus' => (bool) env('ONHOST_CREDIT_ALLOW_BONUS', true),
-        'api_url' => rtrim((string) env('ONHOST_API_URL', rtrim((string) env('ONHOST_ID_ISSUER', ''), '/').'/v1'), '/'),
+        'api_url' => rtrim((string) env('ONHOST_API_URL', rtrim((string) env('ONHOST_ID_ISSUER', env('ONHOST_OIDC_ISSUER', '')), '/').'/v1'), '/'),
         'timeout' => (int) env('ONHOST_CREDIT_TIMEOUT', 10),
         'connect_timeout' => (int) env('ONHOST_CREDIT_CONNECT_TIMEOUT', 3),
     ],
 
     // ONhost ID — this app is a CONFIDENTIAL client (server-side code flow + PKCE, client_secret_post)
     'id' => [
-        'issuer' => rtrim((string) env('ONHOST_ID_ISSUER', ''), '/'),
-        'client_id' => env('ONHOST_ID_CLIENT_ID'),
-        'client_secret' => env('ONHOST_ID_CLIENT_SECRET'),
+        // bez vlastních ONHOST_ID_* se použije klient přihlášení (ONHOST_OIDC_*) – jedna sada údajů v .env
+        'issuer' => rtrim((string) env('ONHOST_ID_ISSUER', env('ONHOST_OIDC_ISSUER', '')), '/'),
+        'client_id' => env('ONHOST_ID_CLIENT_ID', env('ONHOST_OIDC_CLIENT_ID')),
+        'client_secret' => env('ONHOST_ID_CLIENT_SECRET', env('ONHOST_OIDC_CLIENT_SECRET')),
         'redirect' => env('ONHOST_ID_REDIRECT_URI'), // default: route('onhost.callback')
     ],
 ];
