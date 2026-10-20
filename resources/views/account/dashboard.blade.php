@@ -21,6 +21,7 @@
             @endif
         </div>
     @endif
+    @if (config('onhost.credit.enabled'))<div class="mt-8">@include('partials.onhost-credit')</div>@endif
     <div class="card mt-8 p-5">
         <h2 class="font-display text-xl font-bold text-red-700">Smazání účtu</h2>
         <p class="text-sm text-gray-600">Nevratně smaže účet, inzeráty, oblíbené a hlídací psy. Vyžaduje potvrzení heslem.</p>

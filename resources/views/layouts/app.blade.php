@@ -57,6 +57,9 @@
     @if (session('status'))
         <div class="mx-auto max-w-7xl px-4 pt-4"><div class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800" role="status">{{ session('status') }}</div></div>
     @endif
+    @if (session('error'))
+        <div class="mx-auto max-w-7xl px-4 pt-4"><div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{ session('error') }}</div></div>
+    @endif
     @yield('content')
 </main>
 
