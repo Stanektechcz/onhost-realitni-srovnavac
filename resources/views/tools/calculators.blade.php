@@ -1,5 +1,6 @@
 @extends('layouts.app', ['title' => 'Kalkulačky bydlení', 'description' => 'Hypoteční kalkulačka, náklady na bydlení, výnos z pronájmu, energie podle PENB a náklady na dojezd. Orientační výpočty.', 'canonical' => route('tools.calculators')])
-@php($tabs = ['hypoteka' => ['calc', 'Hypotéka'], 'naklady' => ['home', 'Náklady na bydlení'], 'vynos' => ['chart', 'Výnos z pronájmu'], 'energie' => ['leaf', 'Energie dle PENB'], 'dojezd' => ['map', 'Dojezd']])
+@php($tabs = ['hypoteka' => ['calc', 'Hypotéka'], 'naklady' => ['home', 'Náklady na bydlení'], 'vynos' => ['chart', 'Výnos z pronájmu'], 'najem-koupe' => ['home', 'Nájem vs. koupě'], 'cashflow' => ['chart', 'Cash-flow pronájmu'], 'koupe' => ['calc', 'Náklady koupě'], 'prodej' => ['chart', 'Prodej a daň'], 'kauce' => ['home', 'Kauce a výpověď'], 'energie' => ['leaf', 'Energie dle PENB'], 'dojezd' => ['map', 'Dojezd']])
+@php($rules = config('reality_rules'))
 @section('content')
 <section class="bg-space"><div class="container-page py-12 md:py-16">
     <p class="eyebrow">Nástroje</p>
@@ -13,23 +14,33 @@
         @endforeach
     </div>
 
-    <section x-show="tab === 'hypoteka'" class="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]" x-data="mortgageCalc({{ $price }})">
+    <section x-show="tab === 'hypoteka'" class="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]" x-data="mortgageLimitsCalc({{ $price }}, @js($rules['cnb']))">
         <div class="card space-y-5 p-6">
             <h2 class="font-display text-2xl font-bold">Hypoteční kalkulačka</h2>
             <label class="block"><span class="label">Cena nemovitosti (Kč)</span><input type="number" min="0" step="10000" x-model.number="price" class="input"></label>
             <label class="block"><span class="label">Vlastní zdroje: <span x-text="ownPct"></span> % (<span x-text="fmt(price * ownPct / 100)"></span> Kč)</span><input type="range" min="0" max="90" step="5" x-model.number="ownPct" class="range"></label>
             <label class="block"><span class="label">Úroková sazba: <span x-text="rate"></span> % p.a.</span><input type="range" min="0.5" max="10" step="0.05" x-model.number="rate" class="range"></label>
             <label class="block"><span class="label">Doba splácení: <span x-text="years"></span> let</span><input type="range" min="5" max="40" step="1" x-model.number="years" class="range"></label>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <label class="block"><span class="label">Čistý měsíční příjem žadatelů (Kč)</span><input type="number" min="0" step="1000" x-model.number="income" class="input"></label>
+                <label class="block"><span class="label">Ostatní dluhy – zůstatek (Kč)</span><input type="number" min="0" step="10000" x-model.number="otherDebt" class="input"></label>
+            </div>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" x-model="under36" class="h-4 w-4"> Žadatel mladší 36 let, vlastní bydlení (LTV až {{ $rules['cnb']['ltv_under36'] }} %)</label>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" x-model="investment" class="h-4 w-4"> Investiční nemovitost (k pronájmu, třetí a další byt): LTV {{ $rules['cnb']['ltv_investment'] }} %, DTI max. {{ $rules['cnb']['dti_investment'] }}</label>
+            <p class="text-xs text-muted-foreground">Limity ČNB (stav k {{ \Illuminate\Support\Carbon::parse($rules['verified'])->format('j. n. Y') }}): LTV {{ $rules['cnb']['ltv'] }} % ({{ $rules['cnb']['ltv_under36'] }} % do 36 let) pro vlastní bydlení; ukazatele DTI a DSTI jsou pro vlastní bydlení deaktivované. Pro investiční hypotéky ČNB od 1. 4. 2026 doporučuje LTV {{ $rules['cnb']['ltv_investment'] }} % a DTI {{ $rules['cnb']['dti_investment'] }}. Zdroj: <a class="underline" href="{{ $rules['sources']['cnb'][1] }}" rel="noopener" target="_blank">ČNB</a>.</p>
         </div>
         <div class="bg-space space-y-4 rounded-[calc(var(--radius)+4px)] p-6">
             <p class="text-sm opacity-80">Měsíční splátka</p>
             <p class="kpi text-5xl"><span x-text="fmt(payment)"></span> <span class="text-base">Kč</span></p>
             <dl class="space-y-2 text-sm">
                 <div class="flex justify-between"><dt class="opacity-75">Výše úvěru</dt><dd x-text="fmt(loan) + ' Kč'"></dd></div>
-                <div class="flex justify-between"><dt class="opacity-75">LTV</dt><dd><span x-text="fmt(ltv)"></span> % <span x-show="ltv > 80" class="badge bg-accent text-accent-foreground">nad 80 %</span></dd></div>
+                <div class="flex justify-between"><dt class="opacity-75">LTV</dt><dd><span x-text="fmt(ltv)"></span> % <span x-show="ltv > ltvMax" class="badge bg-accent text-accent-foreground">nad limit <span x-text="ltvMax"></span> %</span></dd></div>
+                <div class="flex justify-between"><dt class="opacity-75">Max. úvěr dle LTV</dt><dd x-text="fmt(maxLoan) + ' Kč'"></dd></div>
+                <div class="flex justify-between"><dt class="opacity-75">DTI (dluh / roční příjem)</dt><dd><span x-text="dti === null ? '—' : dti.toFixed(1)"></span> <span x-show="!dtiOk" class="badge bg-accent text-accent-foreground">nad 7</span></dd></div>
+                <div class="flex justify-between"><dt class="opacity-75">DSTI (splátka / příjem)</dt><dd x-text="dsti === null ? '—' : dsti.toFixed(1) + ' %'"></dd></div>
                 <div class="flex justify-between"><dt class="opacity-75">Zaplaceno celkem</dt><dd x-text="fmt(total) + ' Kč'"></dd></div>
                 <div class="flex justify-between"><dt class="opacity-75">Z toho úroky</dt><dd x-text="fmt(interest) + ' Kč'"></dd></div>
-                <div class="flex justify-between"><dt class="opacity-75">Orientační čistý příjem domácnosti (DSTI 45 %)</dt><dd x-text="fmt(minIncome) + ' Kč'"></dd></div>
+                
             </dl>
             <p class="text-xs opacity-75">Výpočet anuitní splátky při neměnné sazbě. Neobsahuje poplatky ani pojištění. Nejde o nabídku, doporučení ani zprostředkování spotřebitelského úvěru ve smyslu zákona č. 257/2016 Sb. Konkrétní podmínky vám sdělí banka nebo vázaný zástupce s oprávněním ČNB.</p>
         </div>
@@ -105,5 +116,7 @@
             <p class="mt-4 text-xs opacity-75">Auto: jen palivo, bez parkování, opotřebení a pojištění.</p>
         </div>
     </section>
+
+    @include('tools._new-calculators')
 </div>
 @endsection

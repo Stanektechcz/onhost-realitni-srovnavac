@@ -1,6 +1,6 @@
 import Alpine from 'alpinejs';
 import { searchMap, detailMap, heatMap, amenities } from './map';
-import { mortgageCalc, costCalc, yieldCalc, energyCalc, commuteCalc } from './calculators';
+import { mortgageCalc, costCalc, yieldCalc, energyCalc, commuteCalc, mortgageLimitsCalc, rentBuyCalc, cashflowCalc, buyCostCalc, saleCalc, leaseCalc } from './calculators';
 
 const store = {
     get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } },
@@ -24,6 +24,12 @@ Alpine.data('detailMap', detailMap);
 Alpine.data('heatMap', heatMap);
 Alpine.data('amenities', amenities);
 Alpine.data('mortgageCalc', mortgageCalc);
+Alpine.data('mortgageLimitsCalc', mortgageLimitsCalc);
+Alpine.data('rentBuyCalc', rentBuyCalc);
+Alpine.data('cashflowCalc', cashflowCalc);
+Alpine.data('buyCostCalc', buyCostCalc);
+Alpine.data('saleCalc', saleCalc);
+Alpine.data('leaseCalc', leaseCalc);
 Alpine.data('costCalc', costCalc);
 Alpine.data('yieldCalc', yieldCalc);
 Alpine.data('energyCalc', energyCalc);

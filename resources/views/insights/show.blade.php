@@ -167,6 +167,8 @@
     </div>
 </section>
 
+<div class="container-page">@include('partials.locality-data')</div>
+
 @if ($children->isNotEmpty() || $neighbours->isNotEmpty())
 <section class="container-page mt-10 grid gap-6 lg:grid-cols-2">
     @foreach ([['Lokality v oblasti', $children], ['Okolní lokality', $neighbours]] as [$lbl, $items])

@@ -188,6 +188,8 @@
                     <p x-cloak x-show="amenities === false" class="mt-3 text-sm text-muted-foreground">Data o okolí se nepodařilo načíst.</p>
                 </section>
             @endif
+
+            @include('partials.locality-data', ['localityLinks' => \App\Support\LocalityLinks::for($l->lat, $l->lng, trim($l->city.' '.$l->district))])
         </div>
 
         <aside class="space-y-4 lg:sticky lg:top-20 lg:self-start">
