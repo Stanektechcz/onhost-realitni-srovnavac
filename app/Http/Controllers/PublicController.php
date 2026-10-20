@@ -61,6 +61,13 @@ class PublicController extends Controller
                 }
             }
         }
+        $urls[] = [route('agencies.index'), null, 'daily'];
+        foreach (\App\Models\Agency::query()->get(['id', 'slug', 'updated_at']) as $a) {
+            $urls[] = [route('agencies.show', $a), $a->updated_at?->toAtomString(), 'weekly'];
+        }
+        foreach (\App\Models\Broker::with('agency:id,slug')->where('is_public', true)->get(['id', 'slug', 'agency_id', 'updated_at']) as $b) {
+            $urls[] = [route('agencies.broker', [$b->agency, $b]), $b->updated_at?->toAtomString(), 'monthly'];
+        }
         $urls[] = [route('tools.calculators'), null, null];
         $urls[] = [route('guides.index'), null, null];
         foreach (array_keys(config('reality_content.guides')) as $g) {
