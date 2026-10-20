@@ -54,6 +54,7 @@ class InsightsController extends Controller
             'loc' => $loc, 'agg' => $agg, 'offer' => $offer, 'listings' => $listings, 'benchmarks' => $benchmarks, 'detail' => $detail,
             'neighbours' => $neighbours, 'children' => $children, 'parent' => $parent,
             'noindex' => ! Localities::hasContent($agg, $offer),
+            'localityLinks' => \App\Support\LocalityLinks::for($district['lat'] ?? null, $district['lng'] ?? null, $loc['place']),
         ]);
     }
 

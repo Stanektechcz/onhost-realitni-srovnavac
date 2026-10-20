@@ -9,10 +9,14 @@
             <div class="flex items-center gap-3"><div class="h-2 flex-1 rounded-full bg-muted"><div class="bar-fill h-2 rounded-full transition-all" :style="'width:' + pct + '%'"></div></div><span class="text-sm font-semibold" x-text="pct + ' %'"></span></div>
             <ul class="mt-5 space-y-2">
                 @foreach ($guide['items'] as $i => $item)
-                    <li><label class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 hover:bg-muted"><input type="checkbox" class="h-5 w-5 accent-[var(--accent)]" :checked="done.includes({{ $i }})" @change="toggle({{ $i }})"> <span :class="done.includes({{ $i }}) && 'line-through text-muted-foreground'">{{ $item }}</span></label></li>
+                    @php([$text, $links] = is_array($item) ? $item : [$item, []])
+                    <li class="rounded-xl px-3 py-2 hover:bg-muted"><label class="flex cursor-pointer items-center gap-3"><input type="checkbox" class="h-5 w-5 shrink-0 accent-[var(--accent)]" :checked="done.includes({{ $i }})" @change="toggle({{ $i }})"> <span :class="done.includes({{ $i }}) && 'line-through text-muted-foreground'">{{ $text }}</span></label>
+                        @if ($links)<p class="ml-8 mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs">@foreach ($links as [$label, $url])<a class="text-accent underline" href="{{ $url }}" @if (str_starts_with($url, 'http')) target="_blank" rel="noopener" @endif>{{ $label }}</a>@endforeach</p>@endif
+                    </li>
                 @endforeach
             </ul>
             <button type="button" class="btn-outline btn-sm no-print mt-5" onclick="print()">Vytisknout</button>
+            @if (is_array($guide['items'][0] ?? null))<p class="mt-4 text-xs text-muted-foreground">Odkazy vedou na oficiální zdroje (ČÚZK, Portál veřejné správy, Finanční správa, ERÚ, zakonyprolidi.cz). Ověřeno {{ \Illuminate\Support\Carbon::parse(config('reality_rules.verified'))->format('j. n. Y') }}. Informativní obsah, nejde o právní ani daňové poradenství.</p>@endif
         </div>
     @else
         <div class="prose-guide mt-6">

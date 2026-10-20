@@ -10,7 +10,7 @@ class ToolsController extends Controller
 {
     public function calculators(Request $request)
     {
-        $tabs = ['hypoteka', 'naklady', 'vynos', 'energie', 'dojezd'];
+        $tabs = ['hypoteka', 'naklady', 'vynos', 'najem-koupe', 'cashflow', 'koupe', 'prodej', 'kauce', 'energie', 'dojezd'];
         $tab = in_array($request->query('tab'), $tabs, true) ? $request->query('tab') : 'hypoteka';
 
         return view('tools.calculators', [
