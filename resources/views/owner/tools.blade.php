@@ -81,6 +81,9 @@
 </section>
 
 <div class="mt-6 grid gap-4 md:grid-cols-3">
+    @if (config('reality.features.contracts') && $l->offer_type === 'rent')
+    <a href="{{ route('contracts.create', $l) }}" class="card flex items-start gap-3 p-5 transition hover:shadow-pop"><x-icon name="clipboard" class="h-6 w-6 text-accent" /><span><span class="block font-semibold">Nájemní smlouva online</span><span class="text-sm text-muted-foreground">Vyplnit, elektronicky podepsat a poslat nájemci</span></span></a>
+    @endif
     <a href="{{ route('owner.handover', $l) }}" class="card flex items-start gap-3 p-5 transition hover:shadow-pop"><x-icon name="clipboard" class="h-6 w-6 text-accent" /><span><span class="block font-semibold">Předávací protokol</span><span class="text-sm text-muted-foreground">Checklist, měřiče, vybavení – k tisku</span></span></a>
     <a href="{{ route('owner.contracts') }}" class="card flex items-start gap-3 p-5 transition hover:shadow-pop"><x-icon name="doc" class="h-6 w-6 text-accent" /><span><span class="block font-semibold">Šablony smluv</span><span class="text-sm text-muted-foreground">Návrhy předvyplněné údaji inzerátu</span></span></a>
     <a href="{{ route('account.messages', ['listing' => $l->slug]) }}" class="card flex items-start gap-3 p-5 transition hover:shadow-pop"><x-icon name="mail" class="h-6 w-6 text-accent" /><span><span class="block font-semibold">Dotazy k inzerátu</span><span class="text-sm text-muted-foreground">{{ $totals['inquiries'] }} zpráv</span></span></a>

@@ -125,3 +125,21 @@ Route::prefix('api/feed/v1')->middleware([\App\Http\Middleware\AuthenticateFeed:
 
 // --- Sreality-compatible XML-RPC import for agency CRMs (session hash auth, no CSRF) ---
 Route::post('/import/RPC2', \App\Http\Controllers\Api\SrealityImportController::class)->middleware('throttle:300,1')->name('import.rpc2');
+
+// --- In-system rental contract (feature flag reality.features.contracts, default off) ---
+Route::middleware(['auth', \App\Http\Middleware\EnsureFeature::class.':contracts'])->group(function () {
+    Route::get('/najemni-smlouvy', [\App\Http\Controllers\RentalContractController::class, 'index'])->name('contracts.index');
+    Route::get('/moje/inzeraty/{listing}/najemni-smlouva', [\App\Http\Controllers\RentalContractController::class, 'create'])->name('contracts.create');
+    Route::post('/moje/inzeraty/{listing}/najemni-smlouva', [\App\Http\Controllers\RentalContractController::class, 'store'])->name('contracts.store');
+    Route::get('/najemni-smlouvy/{contract}', [\App\Http\Controllers\RentalContractController::class, 'show'])->name('contracts.show');
+    Route::get('/najemni-smlouvy/{contract}/upravit', [\App\Http\Controllers\RentalContractController::class, 'edit'])->name('contracts.edit');
+    Route::put('/najemni-smlouvy/{contract}', [\App\Http\Controllers\RentalContractController::class, 'update'])->name('contracts.update');
+    Route::get('/najemni-smlouvy/{contract}/tisk', [\App\Http\Controllers\RentalContractController::class, 'printable'])->name('contracts.print');
+    Route::get('/najemni-smlouvy/{contract}/podpis', [\App\Http\Controllers\RentalContractController::class, 'signForm'])->middleware('password.confirm')->name('contracts.sign');
+    Route::post('/najemni-smlouvy/{contract}/kod', [\App\Http\Controllers\RentalContractController::class, 'sendCode'])->middleware(['password.confirm', 'throttle:contract-code'])->name('contracts.code');
+    Route::post('/najemni-smlouvy/{contract}/podpis', [\App\Http\Controllers\RentalContractController::class, 'sign'])->middleware('password.confirm')->name('contracts.sign.store');
+    Route::post('/najemni-smlouvy/{contract}/odeslat', [\App\Http\Controllers\RentalContractController::class, 'send'])->name('contracts.send');
+    Route::post('/najemni-smlouvy/{contract}/zrusit', [\App\Http\Controllers\RentalContractController::class, 'cancel'])->name('contracts.cancel');
+    Route::post('/najemni-smlouvy/{contract}/platba', [\App\Http\Controllers\RentalContractController::class, 'pay'])->middleware('password.confirm')->name('contracts.pay');
+    Route::get('/najemni-smlouvy/{contract}/audit', [\App\Http\Controllers\RentalContractController::class, 'audit'])->name('contracts.audit');
+});

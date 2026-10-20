@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::job(new ExpireListings)->hourly();
+Schedule::call(fn () => config('reality.features.contracts') && app(App\Services\Contracts\RentalContractService::class)->expireStale())->daily()->name('contracts:expire');
 Schedule::job(new SendSavedSearchAlerts)->dailyAt('07:00');
 Schedule::command('reality:benchmarks:fetch')->monthlyOn(5, '04:00');
 Schedule::command('reality:gov:fetch')->twiceDaily(6, 18);

@@ -7,6 +7,8 @@ return [
         'payments' => (bool) env('REALITY_FEATURE_PAYMENTS', false),
         'commissions' => (bool) env('REALITY_FEATURE_COMMISSIONS', false),
         'boost' => (bool) env('REALITY_FEATURE_BOOST', false),
+        // In-system rental contract (draft, e-signature, auto-close of the listing).
+        'contracts' => (bool) env('REALITY_FEATURE_CONTRACTS', false),
     ],
 
     'listing_lifetime_days' => (int) env('REALITY_LISTING_LIFETIME_DAYS', 60),
@@ -18,6 +20,8 @@ return [
     'per_page' => 12,
     'max_photos' => 20,
     'photo' => ['max_kb' => 8192, 'max_width' => 1600, 'thumb_width' => 480, 'quality' => 80],
+
+    'contracts' => ['code_ttl_minutes' => 10, 'code_attempts' => 5, 'sent_expiry_days' => 30],
 
     'boost' => ['price_halere' => 19900, 'days' => 7],
 

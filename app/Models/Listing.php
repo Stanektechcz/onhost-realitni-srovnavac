@@ -16,7 +16,7 @@ class Listing extends Model
     /** internal = our advertisers and agency feeds; gov = public-sector offers (state property register). Never imported. */
     public const PUBLIC_SOURCES = ['internal', 'gov'];
 
-    public const STATUSES = ['draft', 'pending', 'active', 'expired', 'rejected'];
+    public const STATUSES = ['draft', 'pending', 'active', 'expired', 'rejected', 'rented'];
 
     protected $guarded = ['id', 'user_id', 'status', 'source', 'views', 'published_at', 'expires_at', 'moderation_note', 'slug', 'boosted_until', 'renewed_at'];
 

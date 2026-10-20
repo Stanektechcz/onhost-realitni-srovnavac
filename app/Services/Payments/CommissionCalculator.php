@@ -5,12 +5,12 @@ namespace App\Services\Payments;
 use App\Models\CommissionRule;
 
 /**
- * Commission on paid portal services only (membership, boosts). Never applied to property prices.
+ * Commission on paid portal services only (membership, boosts, rental contract service fee). Never applied to property prices.
  * Default: 0 % (no rules, or feature flag off).
  */
 class CommissionCalculator
 {
-    public const SERVICES = ['membership', 'listing_boost'];
+    public const SERVICES = ['membership', 'listing_boost', 'rental_contract'];
 
     public function forService(string $service, int $amountHalere): int
     {
