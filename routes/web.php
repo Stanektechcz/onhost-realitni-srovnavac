@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\OnhostIdController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ListingController;
@@ -27,7 +28,14 @@ Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap'
 Route::get('/sitemap-{page}.xml', [PublicController::class, 'sitemapPart'])->whereNumber('page')->name('sitemap.part');
 Route::get('/robots.txt', [PublicController::class, 'robots']);
 
+// --- ONhost ID (OIDC relying party); all routes 404 while ONHOST_OIDC_ENABLED=false ---
+Route::get('/auth/onhost/redirect', [OnhostIdController::class, 'redirect'])->middleware('throttle:auth')->name('onhost.redirect');
+Route::get('/auth/onhost/callback', [OnhostIdController::class, 'callback'])->middleware('throttle:auth')->name('onhost.callback');
+Route::post('/auth/onhost/backchannel-logout', [OnhostIdController::class, 'backchannelLogout'])->name('onhost.backchannel');
+
 Route::middleware('guest')->group(function () {
+    Route::get('/auth/onhost/propojit', [OnhostIdController::class, 'showLink'])->name('onhost.link');
+    Route::post('/auth/onhost/propojit', [OnhostIdController::class, 'link'])->middleware('throttle:auth');
     Route::get('/registrace', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/registrace', [AuthController::class, 'register'])->middleware('throttle:auth');
     Route::get('/prihlaseni', [AuthController::class, 'showLogin'])->name('login');
@@ -40,6 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/potvrdit-heslo', [AuthController::class, 'confirm'])->middleware('throttle:auth');
 
     Route::get('/moje', [AccountController::class, 'dashboard'])->name('dashboard');
+    Route::post('/moje/onhost-id', [OnhostIdController::class, 'linkFromAccount'])->middleware('throttle:auth')->name('onhost.account.link');
     Route::delete('/moje/ucet', [AuthController::class, 'destroyAccount'])->middleware('password.confirm')->name('account.destroy');
     Route::get('/moje/oblibene', [AccountController::class, 'favorites'])->name('account.favorites');
     Route::post('/inzerat/{listing}/oblibene', [AccountController::class, 'toggleFavorite'])->name('listings.favorite');

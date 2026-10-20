@@ -36,4 +36,19 @@
     <p class="text-sm text-muted-foreground">Nevratně smaže účet, inzeráty, oblíbené a hlídací psy. Vyžaduje potvrzení heslem.</p>
     <form method="POST" action="{{ route('account.destroy') }}" class="mt-3" onsubmit="return confirm('Opravdu smazat účet?')">@csrf @method('DELETE')<button class="btn-ghost text-destructive">Smazat účet</button></form>
 </div>
+@if (app(\App\Auth\OnhostIdClient::class)->enabled())
+<section class="card mt-8 p-6">
+    <h2 class="font-display text-xl font-bold">ONhost ID</h2>
+    @error('onhost')<p class="err">{{ $message }}</p>@enderror
+    @if (auth()->user()->onhost_sub)
+        <p class="mt-2 text-sm">Účet je propojen s ONhost ID.</p>
+    @else
+        <form method="POST" action="{{ route('onhost.account.link') }}" class="mt-3 flex flex-wrap items-end gap-3">
+            @csrf
+            <x-field name="password" label="Pro propojení zadejte heslo" type="password" required autocomplete="current-password" />
+            <button class="btn-outline">Propojit s ONhost ID</button>
+        </form>
+    @endif
+</section>
+@endif
 @endsection
