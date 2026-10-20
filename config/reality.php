@@ -17,6 +17,21 @@ return [
         'software_keys' => array_values(array_filter(array_map('trim', explode(',', (string) env('REALITY_IMPORT_SOFTWARE_KEYS', ''))))),
         'session_minutes' => 15,
     ],
+    // Public ARES open data (business register) for the agency directory; never scrape other portals.
+    'ares' => [
+        'base_url' => env('REALITY_ARES_URL', 'https://ares.gov.cz/ekonomicke-subjekty-v-be/rest'),
+        'nace' => ['68310'],
+        'page_size' => 100,
+        'max_records' => 1000, // ARES returns at most 1000 hits per query
+        'delay_ms' => (int) env('REALITY_ARES_DELAY_MS', 700),
+    ],
+    'review_report_reasons' => [
+        'false' => 'Nepravdivé tvrzení',
+        'offensive' => 'Urážlivý nebo nenávistný obsah',
+        'personal' => 'Osobní údaje třetí osoby',
+        'conflict' => 'Střet zájmů (konkurence, vlastní recenze)',
+        'other' => 'Jiný důvod',
+    ],
     'per_page' => 12,
     'max_photos' => 20,
     'photo' => ['max_kb' => 8192, 'max_width' => 1600, 'thumb_width' => 480, 'quality' => 80],

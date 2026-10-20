@@ -80,6 +80,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/nahlaseni', [AdminController::class, 'reports'])->name('reports');
         Route::post('/nahlaseni/{report}', [AdminController::class, 'resolveReport'])->middleware('password.confirm')->name('reports.resolve');
         Route::get('/statistiky', [AdminController::class, 'stats'])->name('stats');
+        Route::get('/recenze', [\App\Http\Controllers\Admin\AgencyAdminController::class, 'reviews'])->name('agency-reviews');
+        Route::post('/recenze/{review}', [\App\Http\Controllers\Admin\AgencyAdminController::class, 'decideReview'])->middleware('password.confirm')->name('agency-reviews.decide');
+        Route::get('/kancelare', [\App\Http\Controllers\Admin\AgencyAdminController::class, 'claims'])->name('agency-claims');
+        Route::post('/kancelare/{claim}', [\App\Http\Controllers\Admin\AgencyAdminController::class, 'decideClaim'])->middleware('password.confirm')->name('agency-claims.decide');
     });
 });
 
@@ -142,4 +146,17 @@ Route::middleware(['auth', \App\Http\Middleware\EnsureFeature::class.':contracts
     Route::post('/najemni-smlouvy/{contract}/zrusit', [\App\Http\Controllers\RentalContractController::class, 'cancel'])->name('contracts.cancel');
     Route::post('/najemni-smlouvy/{contract}/platba', [\App\Http\Controllers\RentalContractController::class, 'pay'])->middleware('password.confirm')->name('contracts.pay');
     Route::get('/najemni-smlouvy/{contract}/audit', [\App\Http\Controllers\RentalContractController::class, 'audit'])->name('contracts.audit');
+});
+
+// --- Directory of real-estate agencies (ARES open data, claims, moderated reviews) ---
+Route::get('/realitni-kancelare', [\App\Http\Controllers\AgencyController::class, 'index'])->name('agencies.index');
+Route::get('/realitni-kancelare/{agency}', [\App\Http\Controllers\AgencyController::class, 'show'])->name('agencies.show');
+Route::get('/realitni-kancelare/{agency}/makler/{broker}', [\App\Http\Controllers\AgencyController::class, 'broker'])->name('agencies.broker');
+Route::post('/recenze/{review}/nahlasit', [\App\Http\Controllers\AgencyController::class, 'reportReview'])->middleware('throttle:contact')->name('agency-reviews.report');
+Route::middleware('auth')->group(function () {
+    Route::post('/realitni-kancelare/{agency}/recenze', [\App\Http\Controllers\AgencyController::class, 'storeReview'])->middleware('throttle:10,1')->name('agencies.review');
+    Route::post('/realitni-kancelare/{agency}/prevzit', [\App\Http\Controllers\AgencyController::class, 'claim'])->middleware('throttle:10,1')->name('agencies.claim');
+    Route::put('/realitni-kancelare/{agency}', [\App\Http\Controllers\AgencyController::class, 'update'])->name('agencies.update');
+    Route::post('/realitni-kancelare/{agency}/makleri', [\App\Http\Controllers\AgencyController::class, 'storeBroker'])->name('agencies.brokers.store');
+    Route::delete('/realitni-kancelare/{agency}/makleri/{broker}', [\App\Http\Controllers\AgencyController::class, 'destroyBroker'])->name('agencies.brokers.destroy');
 });

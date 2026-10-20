@@ -29,7 +29,9 @@ class ListingController extends Controller
         $similar = Listing::public()->where('id', '!=', $listing->id)->where('offer_type', $listing->offer_type)
             ->where('city', $listing->city)->with('photos')->latest('published_at')->limit(3)->get();
 
-        return view('listings.show', compact('listing', 'isFavorite', 'similar', 'market', 'slots', 'myBooking'));
+        $agency = $listing->isPublic() ? \App\Models\Agency::forListing($listing) : null;
+
+        return view('listings.show', compact('listing', 'isFavorite', 'similar', 'market', 'slots', 'myBooking', 'agency'));
     }
 
     public function mine(Request $request)

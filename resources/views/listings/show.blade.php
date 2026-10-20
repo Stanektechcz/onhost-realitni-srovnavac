@@ -214,6 +214,14 @@
                 <p class="mt-4 flex items-center gap-2 text-xs text-muted-foreground"><x-icon name="shield" class="h-4 w-4" /> Nikdy neplaťte zálohu před prohlídkou a ověřením vlastníka.</p>
             </div>
 
+            @if ($agency ?? null)
+                <a href="{{ route('agencies.show', $agency) }}" class="card flex items-center gap-3 p-4 text-sm transition hover:shadow-pop" data-agency-link>
+                    <x-icon name="shield" class="h-5 w-5 text-accent" />
+                    <span><span class="block text-xs text-muted-foreground">Nabízí ověřená realitní kancelář</span><span class="font-semibold">{{ $agency->name }}</span>@if ($agency->reviews_count) <span class="text-muted-foreground">· ★ {{ number_format($agency->rating_avg, 1, ',', '') }}</span>@endif</span>
+                    <x-icon name="arrow" class="ml-auto h-4 w-4" />
+                </a>
+            @endif
+
             @if ($l->isPublic() && ($slots->isNotEmpty() || $myBooking))
                 <section id="prohlidka" class="card p-6" x-data="{ pick: null }">
                     <h2 class="font-display text-xl font-bold">Prohlídka</h2>
