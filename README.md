@@ -26,6 +26,81 @@
 | [19 · Dokumentace a správa](#zdroje) | | |
 
 <a id="o-projektu"></a>
+
+<!-- ONHOST README V6 PRODUCT EXPANSION START -->
+## ✨ ONHOST Reality: detailní produktová vize (V6)
+
+![ONHOST V6](https://img.shields.io/badge/ONHOST-V6-3C096C) ![Stav](https://img.shields.io/badge/stav-STAGING%20%2F%20IMPLEMENTACE-F72585)
+
+> ### Realitní portál bez složité inzerce, se skutečně použitelným vyhledáváním.
+>
+> Cílem je umožnit běžnému majiteli bytu, realitní kanceláři i zájemci o nemovitost snadno nabídnout, ověřit a objevit relevantní nabídku. Portál má propojit kvalitní prezentaci lokalit, pohodlnou práci s médii, transparentní zvýraznění nabídek a platby ONHOST — bez skryté manipulace s hodnocením či daty.
+
+### 👥 Pro koho systém vzniká
+- Soukromý inzerent — průvodce přidáním prodeje nebo pronájmu
+- Realitní kancelář — opakovaná správa portfolia a kontaktů
+- Zájemce — filtry, mapa, uložené hledání a upozornění
+- Moderátor — kontrola závadných nabídek a spamových účtů
+
+### 📦 Co nabídne / nabízí
+- Laravel 13 MVP: vkládání inzerátů, média, filtry a mapa
+- Uložená hledání, upozornění, SEO a kontaktní workflow
+- ONHOST ID a platby kreditem jako volitelné integrace za feature flagy
+- Bezpečné zpracování fotografií, optimalizace a odstranění citlivých EXIF
+- Budoucí asistované texty, čtvrťové informace pouze se zdrojovanými údaji
+
+### 🔁 Jak vypadá skutečná cesta uživatele
+1. Inzerent se přihlásí nebo si založí účet.
+2. Průvodce shromáždí typ nabídky, dispozici, lokalitu, cenu, vybavení a fotografie.
+3. Systém zobrazí kontrolní náhled, povinné informace a cenu případného zvýraznění.
+4. Po schválení moderace je nabídka zveřejněna.
+5. Zájemce si uloží hledání, kontaktuje inzerenta a může nabídku nahlásit.
+
+### 🧱 Stack, data a rozhraní
+**Stack a jeho stav:** Laravel 13, PHP 8.3, Blade, Alpine.js, Tailwind 4, Pest, MapLibre/OSM; SQLite dev/test, MariaDB podle dokumentace.
+
+**Základní entity:** Listing → Media → Location → Owner; User → SavedSearch → Alert; Listing → ModerationReport.
+
+**API, včetně rozlišení implementace a návrhu:**
+- `/onhost/propojit` a `/onhost/callback` — existující OIDC integrační cesty
+- `POST /v1/wallet/ecosystem/charges` — volání ONHOST Core, není lokální endpoint Reality
+- Budoucí API: `GET /api/v1/listings`, `POST /api/v1/listings`, `POST /api/v1/reports` — návrh, nikoli hotový router
+
+**Konfigurace a pravidla:**
+- ONHOST ID a kredity povolovat pouze po ověření testů a schválení
+- API klíče pro externí mapy nebo geokódování chránit mimo Git
+- Pilotní trh ČR, na rozšíření států připravit lokalizovatelné adresní modely
+
+### 🕸️ Schéma fungování
+```mermaid
+flowchart LR
+ A[Inzerent] --> B[Průvodce inzerátem]
+ B --> C[Kontrola a moderace]
+ C --> D[Katalog a mapa]
+ D --> E[Zájemce]
+ E --> F[Uložené hledání]
+ G[ONHOST ID] -. přihlášení .-> A
+ H[ONHOST Wallet] -. placené zvýraznění - plán .-> C
+```
+
+### 🎨 Grafická identita a design
+🏡 Realitní brand — `#12001E` text, `#3C096C` fialová, `#F72585` CTA, `#F5EEFB` světle fialové plochy. Tyto hodnoty jsou potvrzené v `resources/css/app.css`.
+
+Použít sémantické tokeny, rozumné hustoty informací, přístupné formuláře a alternativu ke všem interaktivním prvkům. Definitivní podoba se schvaluje podle brandmanuálu produktu; existující CSS má přednost před novým návrhem.
+
+### ⚠️ Co v žádném případě neslibujeme bez ověření
+- Žádné smyšlené detaily o lokalitě, dopravě nebo cenách nemovitostí
+- Práva k fotografiím, ochrana osobních kontaktů a pravidla moderace DSA
+- Placené služby držet vypnuté do ověření ONHOST kreditu a Comgate
+- V pilotu komunikovat pouze dostupnost pro ČR.
+
+### 📍 Postup vývoje
+**MVP → integrace → zabezpečení → reprodukovatelné testy → staging → owner sign-off → produkce.**
+
+Každý splněný milník musí mít konkrétní implementaci, testy, věrohodné provozní důkazy a odpovědnou osobu.
+
+<!-- ONHOST README V6 PRODUCT EXPANSION END -->
+
 ## 01 · O projektu
 
 **Jednou větou:** Rychlé vložení a hledání nemovitosti bez zbytečných formulářů — později i jedinou konverzací s Elaris Mate.
