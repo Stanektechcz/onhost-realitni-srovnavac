@@ -101,6 +101,102 @@ Každý splněný milník musí mít konkrétní implementaci, testy, věrohodn�
 
 <!-- ONHOST README V6 PRODUCT EXPANSION END -->
 
+
+<!-- ONHOST V7 PRODUCT BLUEPRINT CZ -->
+## 🧭 V7 · Kompletní produktová vize a rozšířený doménový návrh
+
+> [!IMPORTANT]
+> **Současný stav vs. budoucnost:** Aktuální implementaci potvrzuje kód a testy níže. Případné nové moduly, kapacity a interakce jsou roadmapa, nikoli automaticky nasazené funkce.
+
+### ✨ Proč ONHOST Reality — jednoduše od záměru k důvěryhodnému inzerátu
+
+Realitní portál má odstranit bariéru mezi majitelem nemovitosti a kvalitním zveřejněním nabídky. Nemá pouze kopírovat realitní katalog: pomůže s kompletním strukturovaným popisem, médii, lokalitou, správou poptávek, moderací a důvěryhodným prostředím. Pilot se zaměřuje výhradně na český trh.
+
+### 👥 Role a uživatelská hodnota
+
+| Uživatel | Co potřebuje vyřešit |
+|---|---|
+| Soukromý inzerent | Vloží prodej/pronájem bez složitého formuláře |
+| Realitní kancelář | Spravuje portfolio, tým, schvalování a reakce |
+| Zájemce | Hledá relevantní nabídky s jasnými parametry |
+| Moderátor | Řeší podvodné, duplicitní nebo zastaralé inzeráty |
+
+### 🛤️ Konkrétní cesty uživatele
+
+1. Inzerent se přihlásí → přidá nemovitost a fotografie → systém ověří povinné údaje → navrhne text a korekturu → náhled → po schválení zveřejní.
+2. Zájemce vybere oblast/filtry → zobrazí mapu na vyžádání → uloží hledání → získá upozornění na nové nabídky.
+3. Elaris Mate připraví draft napříč službami ONHOST → uživatel odsouhlasí přesný obsah a ceny → publikaci provede oprávněné Reality API.
+
+### 🧩 Funkční rozsah a logické moduly
+
+- Nabídky k prodeji a pronájmu, fotografie, parametry a deduplikace
+- MapLibre/OSM, vyhledávání, alerty a SEO
+- Moderace a audit dle odpovědnosti platformy
+- ONHOST ID a kredity zatím za feature flagy
+- AI popisky výslovně odlišit od ověřených údajů o lokalitě
+
+### 🗃️ Data, modely a jejich vlastnictví
+
+- Listing / Property / AddressArea
+- MediaAsset / MediaVariant / ExifRemoval
+- SellerIdentity / Agency / ContactInquiry
+- SavedSearch / AlertSubscription / ModerationCase
+
+Pro každou entitu specifikovat lifecycle, export, retenci, audit, autorizaci a test nemožnosti přístupu z jiného tenantu; tam kde jde o osoby nebo čipy před publikací použít minimální nutný rozsah údajů.
+
+### 🔌 API a integrační kontrakty
+
+- Existující ONHOST integrační klienty ověřit v `config/onhost.php`
+- Feature-flagované OIDC a `POST /v1/wallet/ecosystem/charges` na Core
+- Návrh Mate: `createDraft`, `validate`, `preview`, `publish` jako samostatná schvalovaná capability
+
+### ⚙️ Konfigurace a konfigurátor
+
+- ONHOST_ID_ENABLED a ONHOST_CREDIT_ENABLED pouze při validovaných kontraktech
+- Lokalizační data s provenance a upozorněním na nejistotu
+- Odstranění EXIF a scan médií
+
+### 🎨 Vlastní identita
+
+Návrh **ONHOST Habitat**: #12001E ink, #3C096C plum, #F72585 akcent a #F5EEFB plochy — přesně z `resources/css/app.css`; mírnější redakční vizuál a prostor pro velké fotografie.
+
+### 🧭 Jak spolu moduly komunikují
+
+```mermaid
+flowchart LR
+ U[Klient] --> WEB[Veřejný web / administrace]
+ WEB --> API[Doménové API produktu]
+ API --> DB[(Produktová databáze)]
+ API --> INT[Schválené integrace]
+ INT --> CORE[ONHOST Core / ID / Elaris]
+```
+
+### 📈 Co budeme měřit
+
+- Čas vytvoření validního inzerátu
+- Podíl dokončených návrhů a počet chyb povinných polí
+- Míra duplikací, podvodů a zneužití kontaktů
+- Úspěšnost alertů a UX mapy na mobilu
+
+### 🗓️ Rozvoj produktu a kontrolní brány
+
+1. **Etapa 1:** Český trh, kvalita detailu a veřejné vyhledávání
+2. **Etapa 2:** Pilot integrace ONHOST ID/kredit až po security review
+3. **Etapa 3:** Elaris Mate workflow s potvrzením publikace
+4. **Etapa 4:** Agenturní role a rozšířené portfolio
+
+### ✅ Jak doložit dokončení
+
+- Odkaz na implementační soubor, migrační skript a test.
+- Bezpečná autorizace i negativní scénáře a konzistence dat v průběhu změn.
+- API schema, dokumentovaná chybová odpověď, verzování integrace.
+- UX a a11y audit mobilu, ověřená věrohodnost marketingových tvrzení.
+- Provozní monitoring a postup bezpečného návratu po chybě.
+
+**Relevantní zdroje v repozitáři:** `routes/web.php`, `config/onhost.php`, `resources/css/app.css`, `app/Services/Payments/`.
+
+<!-- /ONHOST V7 PRODUCT BLUEPRINT CZ -->
+
 ## 01 · O projektu
 
 **Jednou větou:** Rychlé vložení a hledání nemovitosti bez zbytečných formulářů — později i jedinou konverzací s Elaris Mate.
