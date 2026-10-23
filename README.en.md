@@ -9,6 +9,30 @@
 > [!IMPORTANT]
 > This README distinguishes **verified repository content** from design proposals and planned interfaces. ONHOST remains in staging. A project may have code without live provider connectivity or production payments.
 
+
+<!-- ONHOST README V6 EN EXPANSION START -->
+## ✨ Product vision V6 — ONHOST Realty
+
+![ONHOST V6](https://img.shields.io/badge/ONHOST-V6-3C096C) ![Documentation](https://img.shields.io/badge/documentation-product%20and%20engineering-64748b)
+
+> A Czech-pilot real estate portal for owners, agencies and prospective buyers or tenants. The product prioritizes understandable listing flows, real maps, protected contact details and transparent paid promotion.
+
+### Who benefits and what is being built
+- Listing wizard, photos, discovery, map and saved searches
+- Moderation and privacy of real-estate contacts
+- Optional ONHOST ID and wallet integration behind flags
+
+### Architecture and stack
+Laravel 13, Blade, Alpine.js, Tailwind 4, Pest.
+
+### Visual identity
+Verified CSS: #12001E, #3C096C, #F72585; Inter and League Spartan.
+
+### Delivery status and trust boundary
+MVP code is present; paid routes and external integrations are not assumed production ready. Consult the Czech primary README, source code, approved interfaces, and signed owner decisions before treating a design feature as available. No unapproved write action should bypass permission checks, audit logs or independent risk gates.
+
+<!-- ONHOST README V6 EN EXPANSION END -->
+
 ## Contents
 
 [About](#about) · [Capabilities](#capabilities) · [Technology](#technology) · [Architecture](#architecture) · [Installation](#installation) · [API](#api) · [Project standards](#standards) · [Development workflow](#workflow) · [Testing](#testing) · [Design](#design) · [Security](#security) · [Roadmap](#roadmap) · [Sources](#sources)
