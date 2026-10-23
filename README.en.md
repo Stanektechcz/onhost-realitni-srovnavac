@@ -275,3 +275,39 @@ See the [primary Czech README](README.md) for the fuller product strategy and it
 Product documentation owner: **Adrian Staněk**, STANEKTECH / ONHOST. Third-party source licenses and all contributor IP rights must be verified before any open-source publication. This documentation pack is a **review draft**, not a GitHub merge or production deployment.
 
 [Previous README](docs/README_BEFORE_V5.md) · [Czech product README](README.md)
+
+
+<!-- ONHOST V7 PRODUCT BLUEPRINT EN -->
+## 🧭 V7 · Product vision, scope and delivery details
+
+**Product thesis:** ONHOST Reality — jednoduše od záměru k důvěryhodnému inzerátu. The Czech README contains the full narrative and role scenarios. This English companion identifies the verifiable source files, core module boundaries, the target data model and safety considerations.
+
+### Product capability map
+- Nabídky k prodeji a pronájmu, fotografie, parametry a deduplikace
+- MapLibre/OSM, vyhledávání, alerty a SEO
+- Moderace a audit dle odpovědnosti platformy
+- ONHOST ID a kredity zatím za feature flagy
+- AI popisky výslovně odlišit od ověřených údajů o lokalitě
+
+### Data model extensions — partly proposed
+- Listing / Property / AddressArea
+- MediaAsset / MediaVariant / ExifRemoval
+- SellerIdentity / Agency / ContactInquiry
+- SavedSearch / AlertSubscription / ModerationCase
+
+### APIs and integration evidence
+- Existující ONHOST integrační klienty ověřit v `config/onhost.php`
+- Feature-flagované OIDC a `POST /v1/wallet/ecosystem/charges` na Core
+- Návrh Mate: `createDraft`, `validate`, `preview`, `publish` jako samostatná schvalovaná capability
+
+### Measurement and launch readiness
+- Čas vytvoření validního inzerátu
+- Podíl dokončených návrhů a počet chyb povinných polí
+- Míra duplikací, podvodů a zneužití kontaktů
+- Úspěšnost alertů a UX mapy na mobilu
+
+**Source of truth:** `routes/web.php`, `config/onhost.php`, `resources/css/app.css`, `app/Services/Payments/`.
+
+> [!NOTE]
+> Product capability in the repository does not imply a live production launch. All new integration contracts require approval and staging tests.
+<!-- /ONHOST V7 PRODUCT BLUEPRINT EN -->
