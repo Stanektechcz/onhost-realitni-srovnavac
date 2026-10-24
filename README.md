@@ -1,45 +1,144 @@
-# ONhost Reality – MVP realitního portálu
+# ONHOST Reality
 
-Laravel 13 · Blade + Alpine.js · Tailwind 4 (Vite) · Pest · SQLite (dev/test) / MariaDB (produkce).
+<!-- ONHOST DEV HUB V1 -->
+> [!TIP]
+> Vývojové centrum: [docs/onhost](docs/onhost/README.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Elaris skills](.agents/skills/onhost-context/SKILL.md)
+<!-- END ONHOST DEV HUB -->
 
-## Lokálně
-```bash
-composer install && npm install
-cp .env.example .env && php artisan key:generate
-touch database/database.sqlite && php artisan migrate --seed   # vypíše heslo admin@example.test
-php artisan storage:link && npm run build
-php artisan serve
-php artisan test
+> **Z nemovitosti k důvěryhodnému inzerátu rychle, přehledně a s asistencí AI.**
+
+**Stav:** Laravel MVP; ONHOST ID a kreditní integrace za feature flagy  
+**Produktová doména:** reality.onhost.cz; pilot ČR  
+**Dokumentace:** [CZ](README.md) · [EN](README.en.md) · [Archiv kompletní V7](docs/archive/README_V7_CZ_EN.md)
+
+> [!IMPORTANT]
+> **Ověřený stav ≠ plán.** Funkce přítomná v kódu nemusí být dostupná v produkci; připravované API, placení a rozšíření mohou být jen specifikací. Plný technický obsah V7 je zachován v archivu.
+
+## Navigace
+
+[O projektu](#o-projektu) · [Pro koho](#cíloví-uživatelé) · [Funkce](#produktové-moduly) · [Scénáře](#konkrétní-scénáře) · [Technologie](#stack-a-architektura) · [Instalace](#instalace) · [API](#api-a-datové-modely) · [Design](#brand-a-přístupnost) · [Roadmapa](#roadmapa)
+
+## O projektu
+
+Reality mají odstranit překážky při zveřejnění nabídky. Soukromý vlastník či agentura vloží srozumitelný strukturovaný inzerát, fotografie a údaje o lokalitě; zájemce může filtrovat, uložit hledání a bezpečně kontaktovat inzerenta. Elaris Mate později připraví draft inzerátu z jediné konverzace, ale publikace vždy vyžaduje potvrzení vlastníka.
+
+### Očekávaný přínos
+
+Výsledkem má být nejen množství funkcí, ale především srozumitelné zákaznické workflow, dohledatelná odpovědnost za data, přístupná administrace a bezpečný provoz s jasným mechanismem návratu při chybě.
+
+## Cíloví uživatelé
+
+- Soukromý inzerent: jednoduché vložení, návrh textu, přehled reakcí
+- Realitní kancelář: portfolio, týmové role a správa nabídek
+- Zájemce: mapy, upozornění a přesné filtry
+- Moderátor: ochrana proti podvodům, duplicity a zneužití kontaktů
+
+## Produktové moduly
+
+|Oblast|Popis a uživatelská hodnota|Stav podkladů|
+|:--|:--|:--|
+|Inzerce|Strukturované nabídky, fotografie, náhled|MVP kód|
+|Vyhledávání a mapa|Filtry, uložené hledání, MapLibre/OSM|Kód|
+|ONHOST ID|Volitelné account linking|Feature flag|
+|Platby kreditem|Ekosystémové charges/reversal|Feature flag|
+|Elaris draft creator|Conversational návrh inzerátu|Plán|
+
+## Konkrétní scénáře
+
+1. Uživatel vyplní údaje → foto pipeline odstraní EXIF → náhled → moderace → publikace.
+
+2. Zájemce filtruje bydlení → zapne mapu → uloží hledání → dostane změnové upozornění.
+
+3. Mate sestaví popis a parametry → inzerent doplní chybějící údaje → schválí výsledný draft.
+
+## Stack a architektura
+
+- PHP 8.3 / Laravel 13, Blade, Alpine.js, Tailwind 4
+- Pest a Vite; SQLite v dev/test, MariaDB podle provozních podkladů
+- MapLibre/OSM, image transformation
+
+```mermaid
+flowchart LR
+ USER[Uživatel / organizace] --> UI[Produktové rozhraní]
+ UI --> POLICY[ONHOST ID nebo lokální autorizace]
+ POLICY --> API[Doménové API]
+ API --> DB[(Data, média a audit)]
+ API --> WORK[Řízený workflow]
+ WORK --> EXT[Schválené ONHOST a externí integrace]
 ```
 
-## Co je uvnitř
-- Inzeráty (pronájem/prodej, typy, dispozice, ceny v haléřích, PENB A–G / „nevydán“ s upozorněním), průvodce v 5 krocích, fotky → WebP (+AVIF pokud GD umí), bez EXIF.
-- Vyhledávání s filtry, řazením, stránkováním; mapa MapLibre GL + OSM (načítá se až na vyžádání).
-- Oblíbené, hlídací pes (`SendSavedSearchAlerts`, denně), kontakt přes portál (maskované e-maily, honeypot, rate limit), DSA nahlášení + moderace s odůvodněním, audit log.
-- Členství/platby/provize za přepínači v `config/reality.php` (výchozí vypnuto); platby jen přes `StubPaymentProvider`.
-- `php artisan reality:import file.jsonl` – data ze scraperu jako `source=imported`, jen interní statistika v adminu.
-- SEO: sitemap.xml, robots.txt, meta/OG, canonical, schema.org `RealEstateListing`.
-- Nasazení: `deploy/aapanel/README.md`.
+## Instalace
 
-## Kredit ONhost (za přepínačem, výchozí vypnuto)
-Kredit ONhost je peněženka použitelná ve všech projektech ONhost. Portál ho nabízí jako další způsob platby
-„Zaplatit kreditem ONhost“ u placeného členství (`/clenstvi`); zůstatek je vidět na ceníku a v „Můj účet“.
-S `ONHOST_CREDIT_ENABLED=false` neexistuje žádná trasa, tlačítko ani HTTP volání.
+```bash
+composer install && npm install
+cp .env.example .env
+php artisan key:generate
+php artisan test
+npm run build
+```
 
-- **Přihlášení:** portál má vlastní přihlášení e-mailem; ONhost ID slouží jen k *propojení účtu* (`/onhost/propojit`,
-  server-side authorization code + PKCE, důvěrný klient, `client_secret_post`). Scope `openid email wallet:charge`
-  (scope `wallet:charge` jen při zapnutém přepínači); organizaci, ze které se platí, volí uživatel na souhlasné stránce ONhost ID.
-  Access/refresh token je jen na serveru v `onhost_connections` (šifrováno `APP_KEY`), obnovuje se automaticky.
-- **Platba:** `POST /v1/wallet/ecosystem/charges`, idempotency key `reality-payment-<id platby>` (opakování po výpadku sítě
-  použije stejný klíč), `external_reference` = totéž, rodina `listing`, `allow_bonus` dle `ONHOST_CREDIT_ALLOW_BONUS`
-  (zakoupený kredit platí 100 %, bonus jen část – rozhoduje ONhost). Úspěch: platba `paid`, `provider_ref` = ONhost
-  `transaction_id`, `meta.onhost_charge_id`. Chybové kódy ONhost (402, 409, 422, 429, 401, 403) → české hlášky (`OnhostCreditException`).
-- **Vrácení / zrušení:** `POST /admin/platby/{payment}/vratit-kredit` (admin, potvrzení hesla) volá reversal celé platby
-  s klíčem `reality-payment-<id>-reversal`, platbu označí `refunded` a členství `cancelled`. Pro budoucí placené služby
-  (topování inzerátů apod.) použijte `OnhostCreditPaymentProvider::create()` / `reverse()` stejně.
+> [!CAUTION]
+> Používat výhradně izolované vývojové prostředí. Nikdy nemigrovat reálnou DB bez explicitního souhlasu a ověřené zálohy.
 
-**Zapnutí:** 1) v ONhost ID zaregistrujte důvěrnou aplikaci (customer) s redirect URI `https://<portál>/onhost/callback`;
-2) v ONhost control plane přidejte do `ONHOST_WALLET_ECOSYSTEM_APPS` položku `<client_id>:listing` a zapněte
-`ONHOST_WALLET_ECOSYSTEM_ENABLED`; 3) zde nastavte `ONHOST_ID_ISSUER`, `ONHOST_ID_CLIENT_ID`, `ONHOST_ID_CLIENT_SECRET`
-(případně `ONHOST_API_URL`, výchozí `<issuer>/v1`), `REALITY_FEATURE_MEMBERSHIPS=true` a `ONHOST_CREDIT_ENABLED=true`;
-4) `php artisan migrate`. Rodina `listing` odpovídá katalogu portálu (placené služby inzerentů/hledajících).
+## API a datové modely
+
+**Doménové entity:**
+- Property, Listing, MediaAsset, Seller
+- Inquiry, SavedSearch, AlertSubscription
+- ModerationCase, OnhostAccountLink, CreditCharge
+
+**Kontrakty a integrační hranice:**
+- Skutečné routy podle routes/web.php a config/onhost.php.
+- Integrace ONHOST Core používá feature-flagované účtování /v1/wallet/ecosystem/charges.
+- Mate budoucí createDraft/preview/publish musí autorizovat zvlášť.
+
+Každou novou mutaci dokumentovat uvedením metody, schématu, oprávnění, idempotence a rollbacku. Elaris Mate musí respektovat stejná oprávnění jako grafické UI.
+
+## Konfigurace
+
+- ONHOST_ID a ONHOST_CREDIT nevydávat za spuštěné služby.
+- Media EXIF removal, evidence zdroje lokalitních dat.
+- Údaje vlastníka a kontakty jsou citlivé i v AI požadavcích.
+
+## Bezpečnost a standardy
+
+- AI popis nemovitosti není automaticky pravdivý.
+- Před ostrými platbami jsou nutné reconciliace a právní podmínky.
+
+- Každý nový modul má unit a integrační testy; negativní tenant scénáře jsou povinné.
+- Nezapisovat tajemství ani osobní údaje do Git historie či běžných debug logů.
+- Všechny externí integrace vyžadují podepsané/ověřené zprávy, monitoring a bezpečný retry.
+- Změny zahrnují dokumentaci, API schema, UX kontrolu a plán obnovy.
+
+## Brand a přístupnost
+
+- Ink #12001E
+- Plum #3C096C
+- Accent #F72585
+- Light #F5EEFB
+
+Produkt může mít vlastní identitu; kontrast, mobilní přehlednost, klávesnice, vysvětlitelné stavové hlášky a srozumitelné procesy jsou povinné.
+
+## Roadmapa
+
+1. **Fáze 1:** Spolehlivý český MVP katalog a moderace
+2. **Fáze 2:** Validace ONHOST ID a kreditní smlouvy na stagingu
+3. **Fáze 3:** Mate workflow vytváření a úpravy inzerátu
+4. **Fáze 4:** Agenturní funkce a export portfolií
+
+## Akceptační kritéria
+
+- [ ] Funkce doložena skutečnou implementací a reprodukovatelným testem.
+- [ ] Přístupové role a hranice tenantů ověřené negativními testy.
+- [ ] API, UX, konfigurace a dokumentace odpovídají vydání.
+- [ ] Monitoring, obnova a rollback jsou vysvětlené operátorovi.
+- [ ] Vlastník přezkoumal brand, produktová tvrzení a licencování.
+
+## Zdroje
+
+- routes/web.php
+- config/onhost.php
+- resources/css/app.css
+- deploy/aapanel/README.md
+
+[Archiv plného README V7, včetně anglické dokumentace](docs/archive/README_V7_CZ_EN.md) · **Vlastník:** Adrian Staněk.

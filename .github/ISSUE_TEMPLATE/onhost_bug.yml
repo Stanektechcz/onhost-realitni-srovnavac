@@ -1,0 +1,26 @@
+name: "ONHOST · Bug"
+description: "Reprodukovatelná chyba bez osobních údajů"
+title: "[Bug] "
+body:
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Očekávané chování"
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Skutečné chování a dopad"
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: "Reprodukční postup bez tajemství"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: "Commit a prostředí"
