@@ -1,0 +1,5 @@
+# Owner review requires appropriate branch rules and write permissions.
+* @Stanektechcz
+/.github/ @Stanektechcz
+/docs/onhost/ @Stanektechcz
+/.agents/ @Stanektechcz

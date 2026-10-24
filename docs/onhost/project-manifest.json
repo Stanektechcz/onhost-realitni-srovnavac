@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "project": "onhost-realitni-srovnavac",
+  "title": "ONHOST Reality",
+  "owner": "Adrian Staněk",
+  "implementation_status": "existing_code",
+  "vision": "Český portál inzerce nemovitostí, vyhledávání, mapa, alerty, moderace a pozdější AI draft přes Elaris Mate",
+  "stack": "Laravel 13/PHP8.3, Blade, Alpine, Tailwind4, Pest",
+  "modules": [
+    "listing",
+    "search",
+    "maps",
+    "moderation",
+    "onhost-id",
+    "credits"
+  ],
+  "entities": [
+    "Property",
+    "Listing",
+    "Media",
+    "Inquiry",
+    "ModerationCase"
+  ],
+  "integrations": "ONHOST ID/Wallet za feature flags, Elaris Mate",
+  "risks": "AI popis není pravda bez zdroje; odstranit EXIF, platby nejsou produkční",
+  "evidence_sources": [
+    "config/onhost.php",
+    "routes/web.php",
+    "resources/css/app.css"
+  ],
+  "proposed_next_milestone": "Dokončit český MVP a moderaci",
+  "review_required": true
+}

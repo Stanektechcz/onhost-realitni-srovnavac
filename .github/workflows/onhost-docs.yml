@@ -1,0 +1,19 @@
+name: ONHOST Docs
+on:
+  pull_request:
+    paths:
+      - "**/*.md"
+      - "docs/onhost/project-manifest.json"
+      - "tools/check_onhost_docs.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 tools/check_onhost_docs.py

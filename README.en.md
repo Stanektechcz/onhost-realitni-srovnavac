@@ -1,5 +1,10 @@
 # ONHOST Reality — English Overview
 
+<!-- ONHOST DEV HUB V1 -->
+> [!TIP]
+> Developer hub: [docs/onhost](docs/onhost/README.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Elaris skills](.agents/skills/onhost-context/SKILL.md)
+<!-- END ONHOST DEV HUB -->
+
 > **Z nemovitosti k důvěryhodnému inzerátu rychle, přehledně a s asistencí AI.**
 
 **Status:** Laravel MVP; ONHOST ID a kreditní integrace za feature flagy  

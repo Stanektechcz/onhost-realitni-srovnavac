@@ -1,0 +1,26 @@
+name: "ONHOST · Product feature"
+description: "Funkce včetně akceptace a bezpečnosti"
+title: "[Feature] "
+body:
+  - type: textarea
+    id: value
+    attributes:
+      label: "Účel a uživatel"
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: "Scope, integrace a dotčené entity"
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "Akceptační kritéria a negativní scénáře"
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: "Závislosti, bezpečnost a rollback"
