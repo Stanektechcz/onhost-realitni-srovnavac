@@ -10,7 +10,7 @@ return [
         // In-system rental contract (draft, e-signature, auto-close of the listing).
         'contracts' => (bool) env('REALITY_FEATURE_CONTRACTS', false),
         // E-mail digest of saved searches (hlídací pes).
-        'alerts' => (bool) env('REALITY_FEATURE_ALERTS', false),
+        'alerts' => (bool) env('REALITY_FEATURE_ALERTS', true),
         // Monthly ARES import of agencies, region by region.
         'agencies_auto_import' => (bool) env('REALITY_FEATURE_AGENCIES_AUTO_IMPORT', false),
         // Price history and "cena snížena" badge on the listing detail.
