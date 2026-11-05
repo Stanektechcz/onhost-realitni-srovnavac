@@ -27,6 +27,7 @@
     [route('insights.index'), 'Ceny a lokality', request()->routeIs('insights.*')],
     [route('tools.calculators'), 'Kalkulačky', request()->routeIs('tools.calculators')],
     [route('guides.index'), 'Průvodce', request()->routeIs('guides.*')],
+    [route('agencies.index'), 'Realitní kanceláře', request()->routeIs('agencies.*')],
 ])
 <header class="glass sticky top-0 z-40 border-b" x-data="{ open: false }" style="view-transition-name: header">
     <div class="container-page flex h-16 items-center gap-4">
@@ -104,8 +105,10 @@
                 <li><a href="{{ route('search', ['offer_type' => 'rent']) }}" class="hover:text-foreground">Pronájmy</a></li>
                 <li><a href="{{ route('search', ['offer_type' => 'sale']) }}" class="hover:text-foreground">Prodej</a></li>
                 <li><a href="{{ route('insights.index') }}" class="hover:text-foreground">Ceny a lokality</a></li>
-                <li><a href="{{ route('tools.calculators') }}" class="hover:text-foreground">Hypoteční kalkulačka</a></li>
+                <li><a href="{{ route('tools.calculators') }}" class="hover:text-foreground">Kalkulačky</a></li>
                 <li><a href="{{ route('guides.show', 'checklist-prohlidky') }}" class="hover:text-foreground">Checklist prohlídky</a></li>
+                <li><a href="{{ route('guides.index') }}" class="hover:text-foreground">Všichni průvodci</a></li>
+                <li><a href="{{ route('agencies.index') }}" class="hover:text-foreground">Realitní kanceláře</a></li>
             </ul>
         </div>
         <div>

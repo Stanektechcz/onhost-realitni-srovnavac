@@ -38,6 +38,12 @@ class Listing extends Model
             $l->slug ??= Str::lower(Str::random(10));
         });
         $flush = fn () => \App\Services\MarketStats::flush();
+        static::updated(function (Listing $l) {
+            $old = $l->getOriginal('price_halere');
+            if ($l->wasChanged('price_halere') && $old && $l->price_halere) {
+                $l->priceChanges()->create(['old_price_halere' => $old, 'new_price_halere' => $l->price_halere]);
+            }
+        });
         static::saved($flush);
         static::deleted($flush);
     }
@@ -48,6 +54,19 @@ class Listing extends Model
     public function photos(): HasMany { return $this->hasMany(ListingPhoto::class)->orderBy('position'); }
     public function reports(): HasMany { return $this->hasMany(Report::class); }
     public function stats(): HasMany { return $this->hasMany(ListingStat::class); }
+    public function priceChanges(): HasMany { return $this->hasMany(ListingPriceChange::class)->orderByDesc('created_at')->orderByDesc('id'); }
+
+    /** Percent drop of the current price against the highest recorded price (null when not lower). */
+    public function priceDropPercent(): ?int
+    {
+        $max = $this->priceChanges->max('old_price_halere');
+        if (! $max || ! $this->price_halere || $this->price_halere >= $max) {
+            return null;
+        }
+        $pct = (int) round(($max - $this->price_halere) / $max * 100);
+
+        return $pct >= 1 ? $pct : null;
+    }
     public function slots(): HasMany { return $this->hasMany(ViewingSlot::class)->orderBy('starts_at'); }
     public function messages(): HasMany { return $this->hasMany(Message::class); }
     public function favorites(): HasMany { return $this->hasMany(Favorite::class); }

@@ -115,7 +115,7 @@ export function searchMap(src) {
     };
 }
 
-/** Detail map with listing pin, 1 km radius and nearby amenities from Overpass. */
+/** Detail map with listing pin, 1 km radius and nearby amenities (server-side cached). */
 export function detailMap(lat, lng) {
     return {
         amenities: null, loadingPoi: false,
@@ -136,7 +136,7 @@ export function detailMap(lat, lng) {
         },
         async loadPoi() {
             this.loadingPoi = true;
-            try { const r = await overpass(lat, lng, 1000); this.amenities = summarize(r, lat, lng); return r; }
+            try { const r = await overpass(lat, lng); this.amenities = summarize(r, lat, lng); return r; }
             catch (e) { this.amenities = false; return []; }
             finally { this.loadingPoi = false; }
         },
@@ -151,22 +151,11 @@ const CATS = {
     park: { label: 'Parky a hřiště', q: 'nwr["leisure"~"^(park|playground)$"]' },
 };
 
-/** Overpass API call from the client, cached in localStorage for 7 days. */
-export async function overpass(lat, lng, radius) {
-    const key = `ovp:${lat.toFixed(3)}:${lng.toFixed(3)}:${radius}`;
-    try { const c = JSON.parse(localStorage.getItem(key)); if (c && c.t > Date.now() - 6048e5) return c.d; } catch (e) {}
-    const parts = Object.entries(CATS).map(([, c]) => `${c.q}(around:${radius},${lat},${lng});`).join('');
-    const body = `[out:json][timeout:20];(${parts});out center 400;`;
-    const r = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: 'data=' + encodeURIComponent(body), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
-    if (!r.ok) throw new Error('overpass');
-    const j = await r.json();
-    const d = j.elements.map((e) => {
-        const t = e.tags || {};
-        const cat = t.public_transport ? 'transit' : /school|kindergarten/.test(t.amenity) ? 'school' : t.shop ? 'shop' : t.leisure ? 'park' : 'health';
-        return { cat, name: t.name || '', lat: e.lat ?? e.center?.lat, lng: e.lon ?? e.center?.lon };
-    }).filter((p) => p.lat);
-    try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), d })); } catch (e) {}
-    return d;
+/** Nearby amenities from our own cached endpoint (server talks to Overpass, never the browser). */
+export async function overpass(lat, lng) {
+    const r = await fetch(`/api/okoli?lat=${lat}&lng=${lng}`, { headers: { Accept: 'application/json' } });
+    if (!r.ok) throw new Error('amenities');
+    return (await r.json()).pois || [];
 }
 
 function dist(a, b, c, d) {
@@ -216,5 +205,5 @@ export function heatMap(src) {
 
 /** Amenity summary for a point without a map (locality pages). */
 export function amenities(lat, lng) {
-    return { items: null, async init() { try { this.items = summarize(await overpass(lat, lng, 1000), lat, lng); } catch (e) { this.items = false; } } };
+    return { items: null, async init() { try { this.items = summarize(await overpass(lat, lng), lat, lng); } catch (e) { this.items = false; } } };
 }

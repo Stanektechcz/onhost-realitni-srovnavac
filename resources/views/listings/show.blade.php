@@ -47,6 +47,7 @@
         <div class="min-w-0 flex-1">
             <h1 class="text-3xl font-bold md:text-4xl">{{ $l->displayTitle() }}</h1>
             <p class="mt-1 flex items-center gap-1 text-muted-foreground"><x-icon name="pin" class="h-4 w-4" /> {{ $l->locationLabel() }}</p>
+            @if (config('reality.features.price_history') && ($drop = $l->priceDropPercent()))<span class="chip mt-2 inline-flex !border-accent !text-accent" data-test="price-drop">Cena snížena o {{ $drop }} %</span>@endif
         </div>
         <div class="flex gap-2">
             <button type="button" class="btn-outline btn-sm" x-data @click="$store.compare.toggle('{{ $l->slug }}')" :class="$store.compare.has('{{ $l->slug }}') && '!border-accent !text-accent'"><x-icon name="compare" class="h-4 w-4" /> <span x-text="$store.compare.has('{{ $l->slug }}') ? 'V porovnání' : 'Porovnat'">Porovnat</span></button>
@@ -115,6 +116,17 @@
                     <p class="mt-2 text-sm text-muted-foreground">Málo dat pro srovnání v této lokalitě{{ $market ? ' ('.$market['n'].' nabídek)' : '' }}.</p>
                 @endif
             </section>
+
+            @if (config('reality.features.price_history') && $l->priceChanges->isNotEmpty())
+                <section class="card mt-6 p-6">
+                    <h2 class="font-display text-xl font-bold">Historie ceny</h2>
+                    <ul class="mt-3 space-y-1 text-sm">
+                        @foreach ($l->priceChanges->take(10) as $pc)
+                            <li class="flex justify-between gap-3"><span class="text-muted-foreground">{{ $pc->created_at->format('j. n. Y') }}</span><span><s class="text-muted-foreground">{{ \App\Models\Listing::formatCzk($pc->old_price_halere) }}</s> → {{ \App\Models\Listing::formatCzk($pc->new_price_halere) }}</span></li>
+                        @endforeach
+                    </ul>
+                </section>
+            @endif
 
             {{-- Costs --}}
             <section class="mt-6 grid gap-4 sm:grid-cols-2">

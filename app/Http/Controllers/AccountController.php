@@ -74,7 +74,15 @@ class AccountController extends Controller
             'last_notified_at' => now(),
         ]);
 
-        return redirect()->route('account.searches')->with('status', 'Hlídací pes byl uložen. Nové inzeráty vám pošleme e-mailem.');
+        return redirect()->route('account.searches')->with('status', config('reality.features.alerts') ? 'Hlídací pes byl uložen. Nové inzeráty vám pošleme e-mailem.' : 'Hledání bylo uloženo.');
+    }
+
+    public function toggleSearch(Request $request, SavedSearch $search)
+    {
+        abort_unless($search->user_id === $request->user()->id, 403);
+        $search->forceFill(['notify' => ! $search->notify, 'last_notified_at' => now()])->save();
+
+        return back()->with('status', $search->notify ? 'E-mailová upozornění zapnuta.' : 'E-mailová upozornění vypnuta.');
     }
 
     public function destroySearch(Request $request, SavedSearch $search)

@@ -19,6 +19,8 @@ use App\Http\Controllers\ViewingController;
 Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/hledat', [SearchController::class, 'index'])->name('search');
 Route::get('/api/mapa', [SearchController::class, 'map'])->middleware('throttle:60,1')->name('search.map');
+Route::get('/hlidaci-pes/{search}/odhlasit', \App\Http\Controllers\SavedSearchUnsubscribeController::class)->middleware(['signed', 'throttle:20,1'])->name('searches.unsubscribe');
+Route::get('/api/okoli', \App\Http\Controllers\AmenitiesController::class)->middleware('throttle:30,1')->name('amenities');
 Route::get('/inzerat/{listing}', [ListingController::class, 'show'])->name('listings.show');
 Route::post('/inzerat/{listing}/zprava', [ContactController::class, 'message'])->middleware('throttle:contact')->name('listings.message');
 Route::post('/inzerat/{listing}/nahlasit', [ContactController::class, 'report'])->middleware('throttle:contact')->name('listings.report');
@@ -54,6 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/inzerat/{listing}/oblibene', [AccountController::class, 'toggleFavorite'])->name('listings.favorite');
     Route::get('/moje/hlidaci-psi', [AccountController::class, 'searches'])->name('account.searches');
     Route::post('/moje/hlidaci-psi', [AccountController::class, 'storeSearch'])->name('account.searches.store');
+    Route::patch('/moje/hlidaci-psi/{search}', [AccountController::class, 'toggleSearch'])->name('account.searches.toggle');
     Route::delete('/moje/hlidaci-psi/{search}', [AccountController::class, 'destroySearch'])->name('account.searches.destroy');
     Route::get('/moje/zpravy', [AccountController::class, 'messages'])->name('account.messages');
 

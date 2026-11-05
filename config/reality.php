@@ -9,6 +9,12 @@ return [
         'boost' => (bool) env('REALITY_FEATURE_BOOST', false),
         // In-system rental contract (draft, e-signature, auto-close of the listing).
         'contracts' => (bool) env('REALITY_FEATURE_CONTRACTS', false),
+        // E-mail digest of saved searches (hlídací pes).
+        'alerts' => (bool) env('REALITY_FEATURE_ALERTS', false),
+        // Monthly ARES import of agencies, region by region.
+        'agencies_auto_import' => (bool) env('REALITY_FEATURE_AGENCIES_AUTO_IMPORT', false),
+        // Price history and "cena snížena" badge on the listing detail.
+        'price_history' => (bool) env('REALITY_FEATURE_PRICE_HISTORY', false),
     ],
 
     'listing_lifetime_days' => (int) env('REALITY_LISTING_LIFETIME_DAYS', 60),
@@ -25,6 +31,11 @@ return [
         'max_records' => 1000, // ARES returns at most 1000 hits per query
         'delay_ms' => (int) env('REALITY_ARES_DELAY_MS', 700),
     ],
+    // Server-side only (cached); the browser never calls Overpass.
+    'overpass_url' => env('REALITY_OVERPASS_URL', 'https://overpass-api.de/api/interpreter'),
+    // ARES kodKraje of the 14 regions, imported one by one with a pause in between.
+    'agency_import_regions' => [19, 27, 35, 43, 51, 60, 78, 86, 94, 108, 116, 124, 132, 141],
+    'agency_import_pause_s' => (int) env('REALITY_AGENCY_IMPORT_PAUSE_S', 30),
     'review_report_reasons' => [
         'false' => 'Nepravdivé tvrzení',
         'offensive' => 'Urážlivý nebo nenávistný obsah',
