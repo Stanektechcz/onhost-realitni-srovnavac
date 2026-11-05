@@ -60,6 +60,7 @@ it('no longer calls Overpass from the browser bundle', function () {
 
 it('sends no saved-search digest while the alerts flag is off', function () {
     Mail::fake();
+    config(['reality.features.alerts' => false]);
     $u = User::factory()->create();
     $u->savedSearches()->create(['name' => 'Byty', 'filters' => [], 'last_notified_at' => now()->subDay()]);
     Listing::factory()->create(['published_at' => now()]);
