@@ -88,14 +88,10 @@ class OnhostIdController extends Controller
             if (User::where('email', $identity['email'])->exists()) {
                 return $fail('Účet s tímto e-mailem už existuje. Přihlaste se heslem a propojte ONhost ID v sekci Můj účet.');
             }
-            $linked = User::create([
-                'name' => $identity['name'] ?: Str::before($identity['email'], '@'),
-                'email' => $identity['email'],
-                'password' => Str::password(40),
-                'role' => 'seeker',
-            ]);
-            $linked->forceFill(['onhost_sub' => $identity['sub'], 'email_verified_at' => now()])->save();
-            AuditLog::record('auth.oidc_registered', $linked);
+            // Nový účet vzniká až po souhlasu s podmínkami portálu (stejně jako u registrace heslem).
+            $request->session()->put('oidc_signup', ['sub' => $identity['sub'], 'email' => $identity['email'], 'name' => $identity['name'], 'at' => time()]);
+
+            return redirect()->route('oidc.signup');
         }
 
         if ($linked->is_banned) {
@@ -137,6 +133,58 @@ class OnhostIdController extends Controller
         }
 
         return response()->noContent(200)->header('Cache-Control', 'no-store');
+    }
+
+    /** Souhlas s podmínkami pro nový účet z ONhost ID (ověřená identita čeká v session nejvýš 15 minut). */
+    public function signup(Request $request, OnhostIdClient $client)
+    {
+        abort_unless($client->enabled(), 404);
+        $pending = $this->pendingSignup($request);
+        if (! $pending) {
+            return redirect()->route('login')->withErrors(['email' => 'Přihlášení přes ONhost ID vypršelo. Zkuste to prosím znovu.']);
+        }
+
+        return view('auth.onhost-signup', ['email' => $pending['email']]);
+    }
+
+    public function completeSignup(Request $request, OnhostIdClient $client)
+    {
+        abort_unless($client->enabled(), 404);
+        $pending = $this->pendingSignup($request);
+        if (! $pending) {
+            return redirect()->route('login')->withErrors(['email' => 'Přihlášení přes ONhost ID vypršelo. Zkuste to prosím znovu.']);
+        }
+        $request->validate(['terms' => ['accepted']]);
+        $request->session()->forget('oidc_signup');
+        if (User::where('onhost_sub', $pending['sub'])->orWhere('email', $pending['email'])->exists()) {
+            return redirect()->route('login')->withErrors(['email' => 'Účet s tímto e-mailem už existuje. Přihlaste se heslem a propojte ONhost ID v sekci Můj účet.']);
+        }
+        $user = User::create([
+            'name' => $pending['name'] ?: Str::before($pending['email'], '@'),
+            'email' => $pending['email'],
+            'password' => Str::password(40),
+            'role' => 'seeker',
+        ]);
+        $user->forceFill(['onhost_sub' => $pending['sub'], 'email_verified_at' => now()])->save();
+        AuditLog::record('auth.oidc_registered', $user, ['terms_accepted' => true]);
+        Auth::login($user);
+        $request->session()->regenerate();
+        AuditLog::record('auth.oidc_login', $user);
+
+        return redirect()->intended(route('dashboard'));
+    }
+
+    /** @return array{sub: string, email: string, name: ?string, at: int}|null */
+    private function pendingSignup(Request $request): ?array
+    {
+        $p = $request->session()->get('oidc_signup');
+        if (! is_array($p) || ! is_string($p['sub'] ?? null) || ! is_string($p['email'] ?? null) || time() - (int) ($p['at'] ?? 0) > 900) {
+            $request->session()->forget('oidc_signup');
+
+            return null;
+        }
+
+        return $p;
     }
 
     private function start(Request $request, OnhostIdClient $client, bool $link)
