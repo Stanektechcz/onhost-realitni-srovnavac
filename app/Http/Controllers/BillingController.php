@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AuditLog;
 use App\Models\MembershipPlan;
 use App\Models\Payment;
+use App\Services\Payments\Comgate\ComgateException;
 use App\Services\Payments\CommissionCalculator;
 use App\Services\Payments\PaymentProvider;
 use Illuminate\Http\Request;
@@ -27,7 +28,15 @@ class BillingController extends Controller
         $payment->payable()->associate($sub);
         $payment->save();
 
-        if ($redirect = $provider->create($payment)) {
+        try {
+            $redirect = $provider->create($payment);
+        } catch (ComgateException) {
+            $payment->update(['status' => 'failed']);
+            $sub->update(['status' => 'cancelled']);
+
+            return redirect()->route('pricing')->withErrors(['payment' => 'Platební bránu se nepodařilo kontaktovat. Zkuste to prosím později.']);
+        }
+        if ($redirect) {
             return redirect()->away($redirect);
         }
         if ($provider->status($payment->refresh()) === 'paid') {

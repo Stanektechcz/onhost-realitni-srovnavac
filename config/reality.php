@@ -14,7 +14,15 @@ return [
     'photo' => ['max_kb' => 8192, 'max_width' => 1600, 'thumb_width' => 480, 'quality' => 80],
 
     'payments' => [
-        'provider' => env('REALITY_PAYMENT_PROVIDER', 'stub'), // stub | comgate (not implemented yet)
+        'provider' => env('REALITY_PAYMENT_PROVIDER', 'stub'), // stub (local only) | comgate
+        // own gateway of the portal (merchant of Adrian Staněk); test mode by default, secrets only in the server environment
+        'comgate' => [
+            'merchant' => env('COMGATE_MERCHANT', ''),
+            'secret' => env('COMGATE_SECRET', ''),
+            'test' => (bool) env('COMGATE_TEST', true),
+            'base_url' => env('COMGATE_BASE_URL', 'https://payments.comgate.cz/v2.0'),
+            'callback_ips' => env('COMGATE_CALLBACK_IPS', ''), // required: empty refuses every notification
+        ],
     ],
 
     'roles' => ['owner', 'seeker', 'agency', 'developer', 'admin'],

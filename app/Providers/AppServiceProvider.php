@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Listing;
 use App\Observers\ListingObserver;
 use App\Services\Onhost\OnhostCreditView;
+use App\Services\Payments\ComgatePaymentProvider;
 use App\Services\Payments\PaymentProvider;
 use App\Services\Payments\StubPaymentProvider;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -19,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(PaymentProvider::class, fn () => match (config('reality.payments.provider')) {
-            // 'comgate' => new ComgatePaymentProvider(...), // TODO: implement behind the same contract
+            'comgate' => ComgatePaymentProvider::fromConfig(),
             default => new StubPaymentProvider,
         });
         $this->app->scoped(OnhostCreditView::class);

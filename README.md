@@ -43,3 +43,11 @@ S `ONHOST_CREDIT_ENABLED=false` neexistuje žádná trasa, tlačítko ani HTTP v
 `ONHOST_WALLET_ECOSYSTEM_ENABLED`; 3) zde nastavte `ONHOST_ID_ISSUER`, `ONHOST_ID_CLIENT_ID`, `ONHOST_ID_CLIENT_SECRET`
 (případně `ONHOST_API_URL`, výchozí `<issuer>/v1`), `REALITY_FEATURE_MEMBERSHIPS=true` a `ONHOST_CREDIT_ENABLED=true`;
 4) `php artisan migrate`. Rodina `listing` odpovídá katalogu portálu (placené služby inzerentů/hledajících).
+
+## Vlastní platební brána (Comgate)
+
+Portál platí samostatně, bez ONhost kreditu a bez ONhost ID: `REALITY_PAYMENT_PROVIDER=comgate` + `COMGATE_MERCHANT`,
+`COMGATE_SECRET`, `COMGATE_TEST` (výchozí `true`) a `COMGATE_CALLBACK_IPS` (povinné, prázdné = každá notifikace odmítnuta).
+Notifikace `POST /platby/comgate/notifikace`, návrat plátce `GET /platby/{payment}/navrat`. Obě cesty jen spustí nové
+načtení stavu z Comgate (`PaymentSettlement`), částka, měna i reference se musí shodovat. Stub se v produkci odmítne.
+Testy běží jen proti simulaci (`tests/Support/ComgateSimulator.php`, `Http::fake`), nikdy proti bráně.
