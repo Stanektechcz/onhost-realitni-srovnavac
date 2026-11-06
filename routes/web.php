@@ -6,11 +6,13 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\OnhostIdController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Ecosystem\EcosystemController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\OnhostCreditController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\SearchController;
 use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\RememberEcosystemReferral;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 
@@ -20,7 +22,7 @@ Route::get('/api/mapa', [SearchController::class, 'map'])->middleware('throttle:
 Route::get('/inzerat/{listing}', [ListingController::class, 'show'])->name('listings.show');
 Route::post('/inzerat/{listing}/zprava', [ContactController::class, 'message'])->middleware('throttle:contact')->name('listings.message');
 Route::post('/inzerat/{listing}/nahlasit', [ContactController::class, 'report'])->middleware('throttle:contact')->name('listings.report');
-Route::get('/clenstvi', [PublicController::class, 'pricing'])->name('pricing');
+Route::get('/clenstvi', [PublicController::class, 'pricing'])->middleware(RememberEcosystemReferral::class)->name('pricing');
 Route::get('/info/{page}', [PublicController::class, 'legal'])->name('legal');
 Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [PublicController::class, 'robots']);
@@ -30,6 +32,12 @@ Route::get('/auth/onhost', [OnhostIdController::class, 'redirect'])->middleware(
 Route::get('/auth/onhost/callback', [OnhostIdController::class, 'callback'])->middleware('throttle:auth')->name('oidc.callback');
 Route::post('/auth/onhost/backchannel-logout', [OnhostIdController::class, 'backchannelLogout'])
     ->withoutMiddleware([ValidateCsrfToken::class])->middleware('throttle:60,1')->name('oidc.backchannel');
+
+// Ekosystém ONhost (P1 katalog, P7 zdraví, P3 sběrnice) – každý za vlastním příznakem, výchozí vypnuto → 404.
+Route::get('/ecosystem/catalog.json', [EcosystemController::class, 'catalog'])->middleware('throttle:60,1')->name('ecosystem.catalog');
+Route::get('/health', [EcosystemController::class, 'health'])->middleware('throttle:120,1')->name('ecosystem.health');
+Route::post('/bus/webhook', [EcosystemController::class, 'webhook'])
+    ->withoutMiddleware([ValidateCsrfToken::class])->middleware('throttle:120,1')->name('ecosystem.bus');
 
 Route::middleware('guest')->group(function () {
     Route::get('/registrace', [AuthController::class, 'showRegister'])->name('register');
@@ -55,7 +63,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/moje/zpravy', [AccountController::class, 'messages'])->name('account.messages');
 
     Route::get('/moje/inzeraty', [ListingController::class, 'mine'])->name('listings.mine');
-    Route::get('/pridat-inzerat', [ListingController::class, 'create'])->name('listings.create');
+    Route::get('/pridat-inzerat', [ListingController::class, 'create'])->middleware(RememberEcosystemReferral::class)->name('listings.create');
     Route::post('/pridat-inzerat', [ListingController::class, 'store'])->name('listings.store');
     Route::get('/moje/inzeraty/{listing}/krok/{step}', [ListingController::class, 'step'])->whereNumber('step')->name('listings.step');
     Route::put('/moje/inzeraty/{listing}/krok/{step}', [ListingController::class, 'saveStep'])->whereNumber('step')->name('listings.step.save');

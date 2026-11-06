@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Listing;
+use App\Observers\ListingObserver;
+use App\Services\Onhost\OnhostCreditView;
 use App\Services\Payments\PaymentProvider;
 use App\Services\Payments\StubPaymentProvider;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -19,12 +22,13 @@ class AppServiceProvider extends ServiceProvider
             // 'comgate' => new ComgatePaymentProvider(...), // TODO: implement behind the same contract
             default => new StubPaymentProvider,
         });
-        $this->app->scoped(\App\Services\Onhost\OnhostCreditView::class);
+        $this->app->scoped(OnhostCreditView::class);
     }
 
     public function boot(): void
     {
-        View::composer(['pages.pricing', 'partials.onhost-credit'], \App\Services\Onhost\OnhostCreditView::class);
+        View::composer(['pages.pricing', 'partials.onhost-credit'], OnhostCreditView::class);
+        Listing::observe(ListingObserver::class);
         Paginator::defaultView('vendor.pagination.simple-cz');
         RateLimiter::for('contact', fn (Request $r) => [Limit::perMinute(3)->by($r->ip()), Limit::perDay(30)->by($r->ip())]);
         RateLimiter::for('auth', fn (Request $r) => Limit::perMinute(6)->by(strtolower((string) $r->input('email')).'|'.$r->ip()));
