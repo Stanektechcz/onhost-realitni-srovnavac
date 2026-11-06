@@ -91,7 +91,14 @@ it('builds an authorization request with PKCE S256, state and nonce from discove
 it('registers and logs in a new user linked by onhost_sub', function () {
     oidcEnable();
     oidcFake();
-    oidcRoundTrip()->assertRedirect();
+    oidcRoundTrip()->assertRedirect('/auth/onhost/registrace');
+    // bez souhlasu s podmínkami účet nevznikne
+    expect(User::where('onhost_sub', 'onhost-user-42')->exists())->toBeFalse();
+    $this->assertGuest();
+    $this->get('/auth/onhost/registrace')->assertOk()->assertSee('hrac@onhost.test');
+    $this->post('/auth/onhost/registrace', [])->assertSessionHasErrors('terms');
+    expect(User::count())->toBe(0);
+    $this->post('/auth/onhost/registrace', ['terms' => '1'])->assertRedirect();
 
     $user = User::where('onhost_sub', 'onhost-user-42')->first();
     expect($user)->not->toBeNull()->and($user->email)->toBe('hrac@onhost.test');
@@ -162,7 +169,16 @@ it('registers new ONhost ID users as seekers, never admins', function () {
     oidcEnable();
     oidcFake(['role' => 'admin'], ['role' => 'admin']);
     oidcRoundTrip();
+    $this->post('/auth/onhost/registrace', ['terms' => '1']);
     expect(User::where('onhost_sub', 'onhost-user-42')->value('role'))->toBe('seeker');
+});
+
+it('expires a pending ONhost ID signup and refuses it without a flow', function () {
+    oidcEnable();
+    $this->post('/auth/onhost/registrace', ['terms' => '1'])->assertRedirect('/prihlaseni');
+    $this->withSession(['oidc_signup' => ['sub' => 's', 'email' => 'a@b.test', 'name' => null, 'at' => time() - 3600]])
+        ->post('/auth/onhost/registrace', ['terms' => '1'])->assertRedirect('/prihlaseni');
+    expect(User::count())->toBe(0);
 });
 
 it('rejects a wrong state', function () {

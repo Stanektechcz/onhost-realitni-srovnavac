@@ -30,6 +30,8 @@ Route::get('/robots.txt', [PublicController::class, 'robots']);
 // ONhost ID (OIDC) – příznak ONHOST_OIDC_ENABLED (výchozí vypnuto → 404).
 Route::get('/auth/onhost', [OnhostIdController::class, 'redirect'])->middleware(['guest', 'throttle:auth'])->name('oidc.redirect');
 Route::get('/auth/onhost/callback', [OnhostIdController::class, 'callback'])->middleware('throttle:auth')->name('oidc.callback');
+Route::get('/auth/onhost/registrace', [OnhostIdController::class, 'signup'])->middleware('guest')->name('oidc.signup');
+Route::post('/auth/onhost/registrace', [OnhostIdController::class, 'completeSignup'])->middleware(['guest', 'throttle:auth'])->name('oidc.signup.store');
 Route::post('/auth/onhost/backchannel-logout', [OnhostIdController::class, 'backchannelLogout'])
     ->withoutMiddleware([ValidateCsrfToken::class])->middleware('throttle:60,1')->name('oidc.backchannel');
 
