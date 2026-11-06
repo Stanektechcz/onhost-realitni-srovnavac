@@ -9,6 +9,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Ecosystem\EcosystemController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\OnhostCreditController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\SearchController;
 use App\Http\Middleware\EnsureAdmin;
@@ -40,6 +41,11 @@ Route::get('/ecosystem/catalog.json', [EcosystemController::class, 'catalog'])->
 Route::get('/health', [EcosystemController::class, 'health'])->middleware('throttle:120,1')->name('ecosystem.health');
 Route::post('/bus/webhook', [EcosystemController::class, 'webhook'])
     ->withoutMiddleware([ValidateCsrfToken::class])->middleware('throttle:120,1')->name('ecosystem.bus');
+
+// Vlastní platební brána (Comgate) – za REALITY_FEATURE_PAYMENTS, výchozí vypnuto → 404.
+Route::post('/platby/comgate/notifikace', [PaymentController::class, 'notify'])
+    ->withoutMiddleware([ValidateCsrfToken::class])->middleware('throttle:120,1')->name('payments.notify');
+Route::get('/platby/{payment}/navrat', [PaymentController::class, 'back'])->middleware(['auth', 'throttle:30,1'])->name('payments.return');
 
 Route::middleware('guest')->group(function () {
     Route::get('/registrace', [AuthController::class, 'showRegister'])->name('register');
