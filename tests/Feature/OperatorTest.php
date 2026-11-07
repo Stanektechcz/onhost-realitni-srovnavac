@@ -21,7 +21,7 @@ function operator_config_with_env(array $env): array
 }
 
 it('defaults to Adrian Staněk as a non-VAT-payer operator', function () {
-    expect(config('operator.operator'))->toBe('adrian-stanek')
+    expect(config('operator.operator'))->toBe('osvc-stanek-08094616')
         ->and(Operator::seller())->toBe(['name' => 'Adrian Staněk', 'ico' => '08094616', 'dic' => '', 'vat_payer' => false, 'legal_form' => 'osvc'])
         ->and(Operator::vatPayer())->toBeFalse()
         ->and(Operator::footer())->toBe('Provozovatel: Adrian Staněk, IČO 08094616, neplátce DPH');
@@ -62,4 +62,19 @@ it('freezes the seller on a payment so switching the operator keeps the old docu
 
 it('keeps the default footer text identical', function () {
     test()->get('/')->assertSee('provozovatel Adrian Staněk, OSVČ, IČO 08094616.', false);
+});
+
+it('uses the entity id as default, accepts the adrian-stanek alias and derives vat_payer from ECOSYSTEM_OPERATOR_VAT_MODE', function () {
+    expect(config('operator.operator'))->toBe('osvc-stanek-08094616')
+        ->and(\App\Support\Operator::id())->toBe('osvc-stanek-08094616')
+        ->and(\App\Support\Operator::snapshot()['id'])->toBe('osvc-stanek-08094616')
+        ->and(\App\Support\Operator::get('vat_mode'))->toBe('non_payer');
+    config(['operator.operator' => 'adrian-stanek']);
+    expect(\App\Support\Operator::slug())->toBe('adrian-stanek');
+
+    foreach (['payer' => true, 'group' => true, 'identified_person' => false, 'non_payer' => false] as $mode => $payer) {
+        $cfg = operator_config_with_env(['ECOSYSTEM_OPERATOR_VAT_MODE' => $mode]);
+        expect($cfg['operators']['adrian-stanek']['vat_mode'])->toBe($mode)
+            ->and($cfg['operators']['adrian-stanek']['vat_payer'])->toBe($payer);
+    }
 });
