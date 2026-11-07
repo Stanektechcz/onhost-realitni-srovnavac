@@ -30,13 +30,23 @@ class DescriptionGenerator
             $fl = (int) $f['floor'];
             $p[] = $fl === 0 ? 'nachází se v přízemí' : ($fl < 0 ? 'nachází se v suterénu' : "nachází se v {$fl}. patře");
         }
-        if (! empty($f['has_elevator'])) $p[] = 'v domě je výtah';
-        if ($p) $s[] = self::ucfirst(implode(', ', $p)).'.';
+        if (! empty($f['has_elevator'])) {
+            $p[] = 'v domě je výtah';
+        }
+        if ($p) {
+            $s[] = self::ucfirst(implode(', ', $p)).'.';
+        }
 
         $extra = [];
-        if (! empty($f['has_balcony'])) $extra[] = 'balkon nebo terasa';
-        if (! empty($f['has_parking'])) $extra[] = 'možnost parkování';
-        if ($extra) $s[] = 'K dispozici je '.implode(' a ', $extra).'.';
+        if (! empty($f['has_balcony'])) {
+            $extra[] = 'balkon nebo terasa';
+        }
+        if (! empty($f['has_parking'])) {
+            $extra[] = 'možnost parkování';
+        }
+        if ($extra) {
+            $s[] = 'K dispozici je '.implode(' a ', $extra).'.';
+        }
 
         $s[] = match ($f['furnishing'] ?? null) {
             'full' => 'Nemovitost je plně vybavena.',

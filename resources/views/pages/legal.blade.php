@@ -12,7 +12,7 @@
         @elseif ($slug === 'ochrana-osobnich-udaju')
             <p>Osnova: správce, účely a právní základy zpracování, příjemci, doba uložení, práva subjektu údajů, kontakt na pověřence.</p>
             {{-- NÁVRH (kontrakt ONhost ID 2026-10-19), čeká na kontrolu právníkem --}}
-            <p>Přihlášení přes {{ config('oidc.brand_name') }}: od ONhostu (OSVČ Adrian Staněk, IČO 08094616) dostáváme identifikátor účtu, e-mail a jméno, základ čl. 6 odst. 1 písm. b).</p>
+            <p>Přihlášení přes {{ config('oidc.brand_name') }}: od ONhostu ({{ \App\Support\LegalEntity::displayLine() }}) dostáváme identifikátor účtu, e-mail a jméno, základ čl. 6 odst. 1 písm. b).</p>
         @else
             <p>Osnova: provozovatel, registrace, pravidla inzerce, placené služby (zatím neaktivní), odpovědnost, ukončení účtu, rozhodné právo.</p>
         @endif

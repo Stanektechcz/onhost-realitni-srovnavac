@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\Mail;
 /** Veřejné informační stránky srovnávače (landing podstránky, kontakt, FAQ). */
 class PagesController extends Controller
 {
-    /** Provozovatel – jediný pravdivý údaj o subjektu. */
-    public const OPERATOR = ['name' => 'Adrian Staněk', 'form' => 'OSVČ', 'ico' => '08094616'];
-
     public const TOPICS = [
         'obecne' => 'Obecný dotaz',
         'inzerce' => 'Inzerce a účet',
@@ -29,7 +26,7 @@ class PagesController extends Controller
         ['Jsou ceny za m² skutečné prodejní ceny?', 'Mediány z inzerátů jsou inzerované (nabídkové) ceny, ne ceny, za které se nemovitost skutečně prodala. Kupní ceny ukazujeme jen tam, kde je zveřejňuje ČSÚ, a vždy s odkazem na zdroj. Obojí berte jako orientační údaj.'],
         ['Jak porovnám několik nabídek?', 'U nabídky klikněte na „Porovnat“ a přidejte až 4 inzeráty. Na stránce porovnání je uvidíte vedle sebe – cenu, plochu, cenu za m², měsíční náklady, odhad energií a další parametry.'],
         ['Může realitní kancelář importovat nabídky automaticky?', 'Ano. Kanceláře mohou posílat nabídky přes JSON feed API nebo přes XML-RPC rozhraní (RPC2), které podporuje řada realitních CRM. Nabídky se zobrazují pod účtem kanceláře, která za jejich obsah odpovídá.'],
-        ['Kdo web provozuje?', 'Web provozuje Adrian Staněk, OSVČ, IČO 08094616. Kontaktovat nás můžete přes kontaktní formulář.'],
+        ['Kdo web provozuje?', 'Web provozuje :operator. Kontaktovat nás můžete přes kontaktní formulář.'],
         ['Jak nahlásím podezřelý inzerát?', 'Na detailu inzerátu použijte tlačítko „Nahlásit“. Hlášení posuzujeme podle zveřejněných pravidel moderace.'],
     ];
 

@@ -24,8 +24,12 @@ class Sjtsk
         $z = ($N * (1 - $e2) + $h) * sin($B);
 
         // WGS84 -> Bessel (S-JTSK) Helmert transformation
-        $dx = -570.69; $dy = -85.69; $dz = -462.84;
-        $wx = deg2rad(4.99821 / 3600); $wy = deg2rad(1.58676 / 3600); $wz = deg2rad(5.2611 / 3600);
+        $dx = -570.69;
+        $dy = -85.69;
+        $dz = -462.84;
+        $wx = deg2rad(4.99821 / 3600);
+        $wy = deg2rad(1.58676 / 3600);
+        $wz = deg2rad(5.2611 / 3600);
         $m = -3.543e-6;
         $xn = $dx + (1 + $m) * ($x + $wz * $y - $wy * $z);
         $yn = $dy + (1 + $m) * (-$wz * $x + $y + $wx * $z);

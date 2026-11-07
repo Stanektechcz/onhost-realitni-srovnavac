@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\LegalEntity;
 
 /**
  * Nastavení jen ke čtení: zobrazuje VÝHRADNĚ zapnuto/vypnuto a neveřejné názvy (poskytovatel plateb).
@@ -21,6 +22,7 @@ class SettingsController extends Controller
             'reality.features.alerts' => ['REALITY_FEATURE_ALERTS', 'Hlídací pes – e-mailový přehled nových inzerátů podle uložených hledání.'],
             'reality.features.agencies_auto_import' => ['REALITY_FEATURE_AGENCIES_AUTO_IMPORT', 'Měsíční import realitních kanceláří z otevřených dat ARES po krajích.'],
             'reality.features.price_history' => ['REALITY_FEATURE_PRICE_HISTORY', 'Historie ceny a štítek „cena snížena“ na detailu inzerátu.'],
+            'reality.automation.enabled' => ['REALITY_AUTOMATION_ENABLED', 'Denní údržba: expirace inzerátů, připomínka 3 dny před koncem, smazání vyřízených zpráv po 180 dnech.'],
         ],
         'ONhost' => [
             'oidc.enabled' => ['ONHOST_OIDC_ENABLED', 'Přihlášení přes ONhost ID (OpenID Connect).'],
@@ -51,6 +53,7 @@ class SettingsController extends Controller
 
         return view('admin.settings', [
             'groups' => $groups,
+            'legal' => LegalEntity::displayLine(),
             'provider' => $providers[$provider] ?? 'neznámý',
             'providerCode' => array_key_exists($provider, $providers) ? $provider : null,
         ]);
