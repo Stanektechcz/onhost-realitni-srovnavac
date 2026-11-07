@@ -12,7 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [\App\Http\Middleware\SecurityHeaders::class]);
+        $middleware->web(append: [\App\Http\Middleware\SecurityHeaders::class, \App\Http\Middleware\EnsureNotBlocked::class]);
         $middleware->validateCsrfTokens(except: ["api/feed/*", "import/RPC2", "auth/onhost/backchannel-logout"]);
         $middleware->redirectGuestsTo(fn () => route("login"));
     })

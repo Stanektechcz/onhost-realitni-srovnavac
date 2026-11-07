@@ -9,7 +9,18 @@ class Subscription extends Model
 {
     protected $fillable = ['user_id', 'membership_plan_id', 'status', 'starts_at', 'ends_at'];
 
-    protected function casts(): array { return ['starts_at' => 'datetime', 'ends_at' => 'datetime']; }
+    protected function casts(): array
+    {
+        return ['starts_at' => 'datetime', 'ends_at' => 'datetime'];
+    }
 
-    public function plan(): BelongsTo { return $this->belongsTo(MembershipPlan::class, 'membership_plan_id'); }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(MembershipPlan::class, 'membership_plan_id');
+    }
 }

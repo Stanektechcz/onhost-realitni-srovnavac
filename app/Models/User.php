@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -19,7 +20,7 @@ class User extends Authenticatable
 
     protected function casts(): array
     {
-        return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'is_banned' => 'boolean', 'feed_autopublish' => 'boolean', 'feed_last_used_at' => 'datetime', 'feed_import_password' => 'encrypted'];
+        return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'is_banned' => 'boolean', 'blocked_at' => 'datetime', 'feed_autopublish' => 'boolean', 'feed_last_used_at' => 'datetime', 'feed_import_password' => 'encrypted'];
     }
 
     public function isAdmin(): bool
@@ -27,16 +28,43 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    public function isBlocked(): bool
+    {
+        return $this->blocked_at !== null;
+    }
+
     public function canAdvertise(): bool
     {
         return in_array($this->role, ['owner', 'agency', 'developer', 'admin'], true);
     }
 
-    public function listings(): HasMany { return $this->hasMany(Listing::class); }
-    public function favorites(): HasMany { return $this->hasMany(Favorite::class); }
-    public function savedSearches(): HasMany { return $this->hasMany(SavedSearch::class); }
-    public function receivedMessages(): HasMany { return $this->hasMany(Message::class, 'recipient_id'); }
-    public function subscriptions(): HasMany { return $this->hasMany(Subscription::class); }
+    public function listings(): HasMany
+    {
+        return $this->hasMany(Listing::class);
+    }
 
-    public function onhostConnection(): \Illuminate\Database\Eloquent\Relations\HasOne { return $this->hasOne(OnhostConnection::class); }
+    public function favorites(): HasMany
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    public function savedSearches(): HasMany
+    {
+        return $this->hasMany(SavedSearch::class);
+    }
+
+    public function receivedMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'recipient_id');
+    }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function onhostConnection(): HasOne
+    {
+        return $this->hasOne(OnhostConnection::class);
+    }
 }

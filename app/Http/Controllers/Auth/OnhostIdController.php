@@ -94,7 +94,7 @@ class OnhostIdController extends Controller
             return redirect()->route('oidc.signup');
         }
 
-        if ($linked->is_banned) {
+        if ($linked->is_banned || $linked->isBlocked()) {
             return $fail('Účet je zablokován.');
         }
 
