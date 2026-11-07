@@ -12,10 +12,10 @@
                 <dt class="text-gray-500">Role</dt><dd>{{ $user->role }}</dd>
                 <dt class="text-gray-500">Registrace</dt><dd>{{ $user->created_at?->format('j. n. Y H:i') }}</dd>
                 <dt class="text-gray-500">E-mail ověřen</dt><dd>{{ $user->email_verified_at?->format('j. n. Y') ?? 'ne' }}</dd>
-                <dt class="text-gray-500">ONhost ID</dt><dd>{{ $user->onhost_sub ? 'propojeno' : 'ne' }}</dd>
+                <dt class="text-gray-500">{{ config('oidc.brand_name') }}</dt><dd>{{ $user->onhost_sub ? 'propojeno' : 'ne' }}</dd>
                 <dt class="text-gray-500">Inzeráty</dt><dd><a class="underline" href="{{ route('admin.listings.index', ['user' => $user->id]) }}">{{ $user->listings_count }}</a></dd>
                 <dt class="text-gray-500">Předplatné</dt><dd>{{ $user->subscriptions_count }}</dd>
-                <dt class="text-gray-500">Stav</dt><dd>{!! $user->isBlocked() ? '<span class="chip">zablokován '.e($user->blocked_at->format('j. n. Y H:i')).'</span>' : '<span class="chip">aktivní</span>' !!}</dd>
+                <dt class="text-gray-500">Stav</dt><dd>@if ($user->isBlocked())<span class="chip">zablokován{{ $user->blocked_at ? ' '.$user->blocked_at->format('j. n. Y H:i') : ' (starší blokace)' }}</span>@else<span class="chip">aktivní</span>@endif</dd>
             </dl>
         </div>
         <div class="space-y-4">

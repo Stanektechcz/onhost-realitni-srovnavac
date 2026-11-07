@@ -39,7 +39,7 @@ it('states truthful sourcing on the comparator page', function () {
 
 it('shows operator as OSVČ and FAQ schema on the FAQ page', function () {
     $this->get(route('pages.about'))->assertSee('Adrian Staněk')->assertSee('OSVČ');
-    $this->get(route('pages.faq'))->assertSee('"@type":"FAQPage"', false)->assertSee('ONhost ID je jen volitelná');
+    $this->get(route('pages.faq'))->assertSee('"@type":"FAQPage"', false)->assertSee('OnPass je jen volitelná');
 });
 
 it('keeps the compare tool noindex', function () {

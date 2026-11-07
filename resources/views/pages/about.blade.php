@@ -10,7 +10,7 @@
             ['Žádná provize z ceny', 'Neúčtujeme procenta z ceny nemovitosti ani z nájemného.'],
             ['Jen vlastní nabídky', 'Inzeráty zadávají majitelé a kanceláře přímo u nás. Obsah jiných portálů nepřebíráme.'],
             ['Data se zdrojem', 'U statistik uvádíme, odkud pocházejí – z inzerátů na webu, nebo z otevřených dat ČSÚ.'],
-            ['Samostatný web', 'Pro používání nepotřebujete žádný další účet. ONhost ID je jen volitelné přihlášení.'],
+            ['Samostatný web', 'Pro používání nepotřebujete žádný další účet. '.config('oidc.brand_name').' je jen volitelné přihlášení.'],
         ] as [$t, $d])
             <li class="card p-6"><h3 class="text-lg font-bold">{{ $t }}</h3><p class="mt-1 text-sm text-muted-foreground">{{ $d }}</p></li>
         @endforeach

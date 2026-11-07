@@ -17,7 +17,7 @@
         @endforeach
     </div>
     <div class="container-page mt-8 text-sm text-muted-foreground">
-        Účet ONhost ID není potřeba. Pokud ho máte, můžete se jím přihlásit – web ale funguje i bez něj. <a href="{{ route('pages.comparator') }}" class="underline">Jak počítá srovnávač</a> · <a href="{{ route('pages.faq') }}" class="underline">Časté dotazy</a>
+        Účet {{ config('oidc.brand_name') }} není potřeba. Pokud ho máte, můžete se jím přihlásit – web ale funguje i bez něj. <a href="{{ route('pages.comparator') }}" class="underline">Jak počítá srovnávač</a> · <a href="{{ route('pages.faq') }}" class="underline">Časté dotazy</a>
     </div>
 </section>
 

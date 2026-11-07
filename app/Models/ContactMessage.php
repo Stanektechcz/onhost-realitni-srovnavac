@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 /** Zpráva z veřejného kontaktního formuláře (/kontakt). */
 class ContactMessage extends Model
 {
-    protected $fillable = ['name', 'email', 'topic', 'body', 'ip', 'handled_at'];
+    protected $fillable = ['name', 'email', 'topic', 'body', 'ip'];
 
     protected function casts(): array
     {

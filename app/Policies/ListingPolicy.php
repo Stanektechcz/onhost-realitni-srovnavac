@@ -16,14 +16,23 @@ class ListingPolicy
         return $listing->isPublic() || ($user && ($user->id === $listing->user_id || $user->isAdmin()));
     }
 
-    public function create(User $user): bool { return $user->canAdvertise() && ! $user->is_banned; }
+    public function create(User $user): bool
+    {
+        return $user->canAdvertise() && ! $user->isBlocked();
+    }
 
     public function update(User $user, Listing $listing): bool
     {
         return $listing->source === 'internal' && ($user->id === $listing->user_id || $user->isAdmin());
     }
 
-    public function delete(User $user, Listing $listing): bool { return $this->update($user, $listing); }
+    public function delete(User $user, Listing $listing): bool
+    {
+        return $this->update($user, $listing);
+    }
 
-    public function moderate(User $user): bool { return $user->isAdmin(); }
+    public function moderate(User $user): bool
+    {
+        return $user->isAdmin();
+    }
 }

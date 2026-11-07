@@ -28,9 +28,10 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    /** Blokace: nový sloupec blocked_at, nebo starší příznak is_banned (sloupec zůstává kvůli kompatibilitě). */
     public function isBlocked(): bool
     {
-        return $this->blocked_at !== null;
+        return $this->blocked_at !== null || (bool) $this->is_banned;
     }
 
     public function canAdvertise(): bool

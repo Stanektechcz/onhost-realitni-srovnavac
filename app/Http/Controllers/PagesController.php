@@ -24,7 +24,7 @@ class PagesController extends Controller
     /** Časté dotazy: [otázka, odpověď]. Jen ověřitelná tvrzení. */
     public const FAQ = [
         ['Kolik stojí inzerce?', 'Základní inzerát přidáte zdarma. Neúčtujeme provizi z ceny nemovitosti ani z nájemného. Pokud budou nabízeny volitelné placené služby, uvidíte jejich cenu předem a nic se neplatí automaticky.'],
-        ['Potřebuji k používání účet ONhost ID?', 'Ne. Web funguje samostatně – vyhledávání, srovnávač, kalkulačky i průvodce používáte bez registrace. Pro přidání inzerátu stačí běžný účet s e-mailem. Přihlášení přes ONhost ID je jen volitelná možnost.'],
+        ['Potřebuji k používání účet :brand?', 'Ne. Web funguje samostatně – vyhledávání, srovnávač, kalkulačky i průvodce používáte bez registrace. Pro přidání inzerátu stačí běžný účet s e-mailem. Přihlášení přes :brand je jen volitelná možnost.'],
         ['Odkud pocházejí ceny ve srovnávači?', 'Ze dvou zdrojů: z inzerátů zveřejněných přímo na tomto webu (mediány inzerovaných cen za m²) a z veřejných otevřených dat, například Českého statistického úřadu. U čísel uvádíme zdroj a období. Data z jiných realitních portálů nepřebíráme ani nezobrazujeme.'],
         ['Jsou ceny za m² skutečné prodejní ceny?', 'Mediány z inzerátů jsou inzerované (nabídkové) ceny, ne ceny, za které se nemovitost skutečně prodala. Kupní ceny ukazujeme jen tam, kde je zveřejňuje ČSÚ, a vždy s odkazem na zdroj. Obojí berte jako orientační údaj.'],
         ['Jak porovnám několik nabídek?', 'U nabídky klikněte na „Porovnat“ a přidejte až 4 inzeráty. Na stránce porovnání je uvidíte vedle sebe – cenu, plochu, cenu za m², měsíční náklady, odhad energií a další parametry.'],

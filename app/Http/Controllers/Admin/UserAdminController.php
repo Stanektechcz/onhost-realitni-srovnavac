@@ -20,8 +20,8 @@ class UserAdminController extends Controller
         $users = User::query()
             ->when($f['q'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w->where('email', 'like', "%$v%")->orWhere('name', 'like', "%$v%")))
             ->when($f['role'] ?? null, fn ($q, $v) => $q->where('role', $v))
-            ->when(($f['stav'] ?? null) === 'blokovany', fn ($q) => $q->whereNotNull('blocked_at'))
-            ->when(($f['stav'] ?? null) === 'aktivni', fn ($q) => $q->whereNull('blocked_at'))
+            ->when(($f['stav'] ?? null) === 'blokovany', fn ($q) => $q->where(fn ($w) => $w->whereNotNull('blocked_at')->orWhere('is_banned', true)))
+            ->when(($f['stav'] ?? null) === 'aktivni', fn ($q) => $q->whereNull('blocked_at')->where('is_banned', false))
             ->withCount('listings')->latest('id')->paginate(30)->withQueryString();
 
         return view('admin.users.index', compact('users', 'f'));
@@ -62,7 +62,7 @@ class UserAdminController extends Controller
             return back()->withErrors(['action' => 'Vlastní účet nelze zablokovat.']);
         }
         $block = $data['action'] === 'block';
-        $user->forceFill(['blocked_at' => $block ? now() : null])->save();
+        $user->forceFill($block ? ['blocked_at' => now()] : ['blocked_at' => null, 'is_banned' => false])->save();
         AuditLog::record($block ? 'admin.user.block' : 'admin.user.unblock', $user, ['reason' => $data['reason'] ?? null]);
 
         return back()->with('status', $block ? 'Účet byl zablokován.' : 'Účet byl odblokován.');

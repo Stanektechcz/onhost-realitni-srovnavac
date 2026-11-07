@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BillingAdminController;
+use App\Http\Controllers\Admin\ContactMessageAdminController;
 use App\Http\Controllers\Admin\ListingAdminController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserAdminController;
@@ -28,6 +29,10 @@ Route::middleware(['auth', EnsureAdmin::class])->prefix('admin')->name('admin.')
     Route::get('/tarify/{plan}/upravit', [BillingAdminController::class, 'editPlan'])->name('plans.edit');
     Route::put('/tarify/{plan}', [BillingAdminController::class, 'updatePlan'])->middleware('password.confirm')->name('plans.update');
     Route::delete('/tarify/{plan}', [BillingAdminController::class, 'destroyPlan'])->middleware('password.confirm')->name('plans.destroy');
+
+    Route::get('/kontakt', [ContactMessageAdminController::class, 'index'])->name('contact.index');
+    Route::get('/kontakt/{message}', [ContactMessageAdminController::class, 'show'])->name('contact.show');
+    Route::post('/kontakt/{message}/stav', [ContactMessageAdminController::class, 'status'])->name('contact.status');
 
     Route::get('/nastaveni', [SettingsController::class, 'index'])->name('settings');
     Route::get('/audit', [AuditLogController::class, 'index'])->name('audit');
