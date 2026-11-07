@@ -17,6 +17,9 @@ return [
         'price_history' => (bool) env('REALITY_FEATURE_PRICE_HISTORY', false),
     ],
 
+    // Kam se přeposílají zprávy z /kontakt (prázdné = zprávy se jen uloží do DB).
+    'contact_email' => env('REALITY_CONTACT_EMAIL'),
+
     'listing_lifetime_days' => (int) env('REALITY_LISTING_LIFETIME_DAYS', 60),
     // Sreality-compatible XML-RPC import (/import/RPC2): software_key per CRM vendor, comma separated.
     'import' => [
