@@ -190,3 +190,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/realitni-kancelare/{agency}/makleri', [\App\Http\Controllers\AgencyController::class, 'storeBroker'])->name('agencies.brokers.store');
     Route::delete('/realitni-kancelare/{agency}/makleri/{broker}', [\App\Http\Controllers\AgencyController::class, 'destroyBroker'])->name('agencies.brokers.destroy');
 });
+
+// Vlna 1 (agentní tým): oddělené soubory, aby paralelní práce nekolidovala.
+require __DIR__.'/pages.php';
+require __DIR__.'/admin.php';
