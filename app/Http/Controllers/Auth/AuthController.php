@@ -36,7 +36,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $cred = $request->validate(['email' => ['required', 'email'], 'password' => ['required']]);
-        if (! Auth::attempt($cred + ['is_banned' => false], $request->boolean('remember'))) {
+        if (! Auth::attempt($cred + ['is_banned' => false, 'blocked_at' => null], $request->boolean('remember'))) {
             throw ValidationException::withMessages(['email' => 'Nesprávný e-mail nebo heslo.']);
         }
         $request->session()->regenerate();

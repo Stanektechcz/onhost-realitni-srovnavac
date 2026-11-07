@@ -8,6 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('users', 'onhost_sub')) {
+            return; // sloučené větve: sloupec už přidala druhá migrace
+        }
         Schema::table('users', function (Blueprint $table) {
             // ONhost ID: párový `sub` pro tohoto klienta – jediný klíč vazby účtu (kontrakt onhost-id).
             $table->string('onhost_sub', 191)->nullable()->unique()->after('email');
@@ -16,6 +19,9 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasColumn('users', 'onhost_sub')) {
+            return;
+        }
         Schema::table('users', function (Blueprint $table) {
             $table->dropUnique(['onhost_sub']);
             $table->dropColumn('onhost_sub');

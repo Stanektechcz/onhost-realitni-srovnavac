@@ -18,6 +18,7 @@
         <label class="flex items-start gap-2 text-sm"><input type="checkbox" name="terms" value="1" class="mt-1"> Souhlasím s <a class="text-pink underline" href="{{ route('legal', 'obchodni-podminky') }}">obchodními podmínkami</a> a beru na vědomí <a class="text-pink underline" href="{{ route('legal', 'ochrana-osobnich-udaju') }}">zásady ochrany osobních údajů</a>.</label>
         @error('terms')<p class="err">{{ $message }}</p>@enderror
         <button class="btn-primary w-full">Vytvořit účet</button>
+        @include('auth.partials.onhost-button')
     </form>
 </div>
 @endsection

@@ -1,0 +1,11 @@
+{
+  "_comment": "Povolene adaptery (dle 05-kontrola-podminek-portalu.md): bezrealitky, idnes, eurobydleni. Beh navic vyzaduje v rozhodnuti radky 'VERDIKT: POVOLENO' a 'SCHVÁLENO ADVOKÁTEM:' a okno 01-05 h. Vse VYPNUTO.",
+  "decision_file": "/mnt/project-files/reality/ROZHODNUTI-scraping-2026-10-18.md",
+  "min_interval_seconds": 10.0,
+  "max_age_days": 30,
+  "portals": {
+    "bezrealitky": {"enabled": false},
+    "idnes":       {"enabled": false},
+    "eurobydleni": {"enabled": false}
+  }
+}

@@ -6,12 +6,53 @@ return [
         'memberships' => (bool) env('REALITY_FEATURE_MEMBERSHIPS', false),
         'payments' => (bool) env('REALITY_FEATURE_PAYMENTS', false),
         'commissions' => (bool) env('REALITY_FEATURE_COMMISSIONS', false),
+        'boost' => (bool) env('REALITY_FEATURE_BOOST', false),
+        // In-system rental contract (draft, e-signature, auto-close of the listing).
+        'contracts' => (bool) env('REALITY_FEATURE_CONTRACTS', false),
+        // E-mail digest of saved searches (hlídací pes).
+        'alerts' => (bool) env('REALITY_FEATURE_ALERTS', true),
+        // Monthly ARES import of agencies, region by region.
+        'agencies_auto_import' => (bool) env('REALITY_FEATURE_AGENCIES_AUTO_IMPORT', false),
+        // Price history and "cena snížena" badge on the listing detail.
+        'price_history' => (bool) env('REALITY_FEATURE_PRICE_HISTORY', false),
     ],
 
+    // Kam se přeposílají zprávy z /kontakt (prázdné = zprávy se jen uloží do DB).
+    'contact_email' => env('REALITY_CONTACT_EMAIL'),
+
     'listing_lifetime_days' => (int) env('REALITY_LISTING_LIFETIME_DAYS', 60),
+    // Sreality-compatible XML-RPC import (/import/RPC2): software_key per CRM vendor, comma separated.
+    'import' => [
+        'software_keys' => array_values(array_filter(array_map('trim', explode(',', (string) env('REALITY_IMPORT_SOFTWARE_KEYS', ''))))),
+        'session_minutes' => 15,
+    ],
+    // Public ARES open data (business register) for the agency directory; never scrape other portals.
+    'ares' => [
+        'base_url' => env('REALITY_ARES_URL', 'https://ares.gov.cz/ekonomicke-subjekty-v-be/rest'),
+        'nace' => ['68310'],
+        'page_size' => 100,
+        'max_records' => 1000, // ARES returns at most 1000 hits per query
+        'delay_ms' => (int) env('REALITY_ARES_DELAY_MS', 700),
+    ],
+    // Server-side only (cached); the browser never calls Overpass.
+    'overpass_url' => env('REALITY_OVERPASS_URL', 'https://overpass-api.de/api/interpreter'),
+    // ARES kodKraje of the 14 regions, imported one by one with a pause in between.
+    'agency_import_regions' => [19, 27, 35, 43, 51, 60, 78, 86, 94, 108, 116, 124, 132, 141],
+    'agency_import_pause_s' => (int) env('REALITY_AGENCY_IMPORT_PAUSE_S', 30),
+    'review_report_reasons' => [
+        'false' => 'Nepravdivé tvrzení',
+        'offensive' => 'Urážlivý nebo nenávistný obsah',
+        'personal' => 'Osobní údaje třetí osoby',
+        'conflict' => 'Střet zájmů (konkurence, vlastní recenze)',
+        'other' => 'Jiný důvod',
+    ],
     'per_page' => 12,
     'max_photos' => 20,
     'photo' => ['max_kb' => 8192, 'max_width' => 1600, 'thumb_width' => 480, 'quality' => 80],
+
+    'contracts' => ['code_ttl_minutes' => 10, 'code_attempts' => 5, 'sent_expiry_days' => 30],
+
+    'boost' => ['price_halere' => 19900, 'days' => 7],
 
     'payments' => [
         'provider' => env('REALITY_PAYMENT_PROVIDER', 'stub'), // stub (local only) | comgate

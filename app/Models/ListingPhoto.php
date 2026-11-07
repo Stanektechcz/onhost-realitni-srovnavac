@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ListingPhoto extends Model
 {
-    protected $fillable = ['path', 'thumb_path', 'avif_path', 'width', 'height', 'position'];
+    protected $fillable = ['path', 'thumb_path', 'avif_path', 'width', 'height', 'position', 'source_url', 'source_hash'];
 
     public function listing(): BelongsTo { return $this->belongsTo(Listing::class); }
 

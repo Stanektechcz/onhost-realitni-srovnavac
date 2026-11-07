@@ -55,6 +55,7 @@ it('toggles favorites', function () {
 
 it('saves a search and the watchdog mails only new matches', function () {
     Mail::fake();
+    config(['reality.features.alerts' => true]);
     $u = User::factory()->create(['role' => 'seeker']);
     $this->actingAs($u)->post(route('account.searches.store'), ['offer_type' => 'rent', 'disposition' => ['2+kk']])->assertRedirect(route('account.searches'));
     $s = SavedSearch::firstOrFail();
