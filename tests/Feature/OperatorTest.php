@@ -66,11 +66,11 @@ it('keeps the default footer text identical', function () {
 
 it('uses the entity id as default, accepts the adrian-stanek alias and derives vat_payer from ECOSYSTEM_OPERATOR_VAT_MODE', function () {
     expect(config('operator.operator'))->toBe('osvc-stanek-08094616')
-        ->and(\App\Support\Operator::id())->toBe('osvc-stanek-08094616')
-        ->and(\App\Support\Operator::snapshot()['id'])->toBe('osvc-stanek-08094616')
-        ->and(\App\Support\Operator::get('vat_mode'))->toBe('non_payer');
+        ->and(Operator::id())->toBe('osvc-stanek-08094616')
+        ->and(Operator::snapshot()['id'])->toBe('osvc-stanek-08094616')
+        ->and(Operator::get('vat_mode'))->toBe('non_payer');
     config(['operator.operator' => 'adrian-stanek']);
-    expect(\App\Support\Operator::slug())->toBe('adrian-stanek');
+    expect(Operator::slug())->toBe('adrian-stanek');
 
     foreach (['payer' => true, 'group' => true, 'identified_person' => false, 'non_payer' => false] as $mode => $payer) {
         $cfg = operator_config_with_env(['ECOSYSTEM_OPERATOR_VAT_MODE' => $mode]);
