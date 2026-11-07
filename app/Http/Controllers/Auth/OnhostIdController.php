@@ -39,7 +39,7 @@ class OnhostIdController extends Controller
         $request->user()->forceFill(['onhost_sub' => null])->save();
         AuditLog::record('auth.oidc_unlinked', $request->user());
 
-        return redirect()->route('dashboard')->with('status', 'Účet ONhost ID byl odpojen.');
+        return redirect()->route('dashboard')->with('status', 'Účet '.config('oidc.brand_name').' byl odpojen.');
     }
 
     public function callback(Request $request, OnhostIdClient $client)
@@ -47,7 +47,7 @@ class OnhostIdController extends Controller
         abort_unless($client->enabled(), 404);
         $flow = (array) $request->session()->pull('oidc', []);
         $link = (bool) ($flow['link'] ?? false);
-        $fail = fn (string $msg = 'Přihlášení přes ONhost ID se nezdařilo. Zkuste to prosím znovu.') => $link && $request->user()
+        $fail = fn (?string $msg = null) => ($msg ??= 'Přihlášení přes '.config('oidc.brand_name').' se nezdařilo. Zkuste to prosím znovu.') && $link && $request->user()
             ? redirect()->route('dashboard')->withErrors(['onhost' => $msg])
             : redirect()->route('login')->withErrors(['email' => $msg]);
 
@@ -73,20 +73,20 @@ class OnhostIdController extends Controller
                 return $fail();
             }
             if ($linked && $linked->id !== $current->id) {
-                return $fail('Tento účet ONhost ID je už propojen s jiným účtem portálu.');
+                return $fail('Tento účet '.config('oidc.brand_name').' je už propojen s jiným účtem portálu.');
             }
             $current->forceFill(['onhost_sub' => $identity['sub']])->save();
             AuditLog::record('auth.oidc_linked', $current);
 
-            return redirect()->route('dashboard')->with('status', 'Účet byl propojen s ONhost ID.');
+            return redirect()->route('dashboard')->with('status', 'Účet byl propojen s '.config('oidc.brand_name').'.');
         }
 
         if (! $linked) {
             if (! $identity['email'] || ! $identity['email_verified']) {
-                return $fail('ONhost ID nepotvrdilo ověřený e-mail, účet nelze založit.');
+                return $fail(config('oidc.brand_name').' nepotvrdilo ověřený e-mail, účet nelze založit.');
             }
             if (User::where('email', $identity['email'])->exists()) {
-                return $fail('Účet s tímto e-mailem už existuje. Přihlaste se heslem a propojte ONhost ID v sekci Můj účet.');
+                return $fail('Účet s tímto e-mailem už existuje. Přihlaste se heslem a propojte '.config('oidc.brand_name').' v sekci Můj účet.');
             }
             // Nový účet vzniká až po souhlasu s podmínkami portálu (stejně jako u registrace heslem).
             $request->session()->put('oidc_signup', ['sub' => $identity['sub'], 'email' => $identity['email'], 'name' => $identity['name'], 'at' => time()]);
@@ -94,7 +94,7 @@ class OnhostIdController extends Controller
             return redirect()->route('oidc.signup');
         }
 
-        if ($linked->is_banned || $linked->isBlocked()) {
+        if ($linked->isBlocked()) {
             return $fail('Účet je zablokován.');
         }
 
@@ -141,7 +141,7 @@ class OnhostIdController extends Controller
         abort_unless($client->enabled(), 404);
         $pending = $this->pendingSignup($request);
         if (! $pending) {
-            return redirect()->route('login')->withErrors(['email' => 'Přihlášení přes ONhost ID vypršelo. Zkuste to prosím znovu.']);
+            return redirect()->route('login')->withErrors(['email' => 'Přihlášení přes '.config('oidc.brand_name').' vypršelo. Zkuste to prosím znovu.']);
         }
 
         return view('auth.onhost-signup', ['email' => $pending['email']]);
@@ -152,12 +152,12 @@ class OnhostIdController extends Controller
         abort_unless($client->enabled(), 404);
         $pending = $this->pendingSignup($request);
         if (! $pending) {
-            return redirect()->route('login')->withErrors(['email' => 'Přihlášení přes ONhost ID vypršelo. Zkuste to prosím znovu.']);
+            return redirect()->route('login')->withErrors(['email' => 'Přihlášení přes '.config('oidc.brand_name').' vypršelo. Zkuste to prosím znovu.']);
         }
         $request->validate(['terms' => ['accepted']]);
         $request->session()->forget('oidc_signup');
         if (User::where('onhost_sub', $pending['sub'])->orWhere('email', $pending['email'])->exists()) {
-            return redirect()->route('login')->withErrors(['email' => 'Účet s tímto e-mailem už existuje. Přihlaste se heslem a propojte ONhost ID v sekci Můj účet.']);
+            return redirect()->route('login')->withErrors(['email' => 'Účet s tímto e-mailem už existuje. Přihlaste se heslem a propojte '.config('oidc.brand_name').' v sekci Můj účet.']);
         }
         $user = User::create([
             'name' => $pending['name'] ?: Str::before($pending['email'], '@'),
@@ -193,8 +193,8 @@ class OnhostIdController extends Controller
             $req = $client->authorizationRequest();
         } catch (Throwable) {
             return $link
-                ? redirect()->route('dashboard')->withErrors(['onhost' => 'ONhost ID je teď nedostupné.'])
-                : redirect()->route('login')->withErrors(['email' => 'ONhost ID je teď nedostupné.']);
+                ? redirect()->route('dashboard')->withErrors(['onhost' => config('oidc.brand_name').' je teď nedostupné.'])
+                : redirect()->route('login')->withErrors(['email' => config('oidc.brand_name').' je teď nedostupné.']);
         }
         $request->session()->put('oidc', ['state' => $req['state'], 'nonce' => $req['nonce'], 'verifier' => $req['verifier'], 'link' => $link]);
 

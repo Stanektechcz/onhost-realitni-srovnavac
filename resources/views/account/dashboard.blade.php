@@ -38,14 +38,14 @@
 </div>
 @if (app(\App\Auth\OnhostIdClient::class)->enabled())
 <section class="card mt-8 p-6" data-oidc-panel>
-    <h2 class="font-display text-xl font-bold">ONhost ID</h2>
+    <h2 class="font-display text-xl font-bold">{{ config('oidc.brand_name') }}</h2>
     @error('onhost')<p class="err">{{ $message }}</p>@enderror
     @if (auth()->user()->onhost_sub)
-        <p class="mt-2 text-sm">Účet je propojen s ONhost ID.</p>
-        <form method="POST" action="{{ route('oidc.unlink') }}" class="mt-3">@csrf @method('DELETE')<button class="btn-ghost">Odpojit ONhost ID</button></form>
+        <p class="mt-2 text-sm">Účet je propojen s {{ config('oidc.brand_name') }}.</p>
+        <form method="POST" action="{{ route('oidc.unlink') }}" class="mt-3">@csrf @method('DELETE')<button class="btn-ghost">Odpojit {{ config('oidc.brand_name') }}</button></form>
     @else
-        <p class="mt-2 text-sm text-muted-foreground">Volitelné. Propojení vyžaduje potvrzení hesla a přihlášení k ONhost ID.</p>
-        <a href="{{ route('oidc.link') }}" class="btn-ghost mt-3 inline-block">Propojit s ONhost ID</a>
+        <p class="mt-2 text-sm text-muted-foreground">Volitelné. Propojení vyžaduje potvrzení hesla a přihlášení k {{ config('oidc.brand_name') }}.</p>
+        <a href="{{ route('oidc.link') }}" class="btn-ghost mt-3 inline-block">Propojit s {{ config('oidc.brand_name') }}</a>
     @endif
 </section>
 @endif

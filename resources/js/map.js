@@ -1,4 +1,4 @@
-// MapLibre GL loaded on demand from unpkg (pinned version) + OpenFreeMap tiles (free, no key).
+// MapLibre GL self-hosted (npm maplibre-gl, Vite dynamic import → samostatný chunk) + OpenFreeMap tiles (free, no key).
 export const MAPLIBRE_VERSION = '4.7.1';
 export const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 const PRAGUE = [14.43, 50.08];
@@ -7,17 +7,9 @@ let loading;
 export function loadMapLibre() {
     if (window.maplibregl) return Promise.resolve(window.maplibregl);
     if (loading) return loading;
-    loading = new Promise((resolve, reject) => {
-        const css = document.createElement('link');
-        css.rel = 'stylesheet';
-        css.href = `https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`;
-        document.head.appendChild(css);
-        const s = document.createElement('script');
-        s.src = `https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.js`;
-        s.onload = () => resolve(window.maplibregl);
-        s.onerror = reject;
-        document.head.appendChild(s);
-    });
+    loading = Promise.all([import('maplibre-gl'), import('maplibre-gl/dist/maplibre-gl.css')])
+        .then(([mod]) => (window.maplibregl = mod.default || mod))
+        .catch((e) => { loading = null; throw e; });
     return loading;
 }
 

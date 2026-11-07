@@ -146,7 +146,7 @@ class SrealityImportController extends Controller
 
     private function eligible(?User $agency): bool
     {
-        return $agency && ! $agency->is_banned && in_array($agency->role, ['agency', 'developer'], true)
+        return $agency && ! $agency->isBlocked() && in_array($agency->role, ['agency', 'developer'], true)
             && (string) $agency->feed_import_password !== '';
     }
 

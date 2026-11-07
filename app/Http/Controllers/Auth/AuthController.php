@@ -12,7 +12,10 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function showRegister() { return view('auth.register'); }
+    public function showRegister()
+    {
+        return view('auth.register');
+    }
 
     public function register(Request $request)
     {
@@ -31,12 +34,15 @@ class AuthController extends Controller
         return redirect()->route('dashboard')->with('status', 'Vítejte! Účet byl vytvořen.');
     }
 
-    public function showLogin() { return view('auth.login'); }
+    public function showLogin()
+    {
+        return view('auth.login');
+    }
 
     public function login(Request $request)
     {
         $cred = $request->validate(['email' => ['required', 'email'], 'password' => ['required']]);
-        if (! Auth::attempt($cred + ['is_banned' => false, 'blocked_at' => null], $request->boolean('remember'))) {
+        if (! Auth::attemptWhen($cred, fn (User $u) => ! $u->isBlocked(), $request->boolean('remember'))) {
             throw ValidationException::withMessages(['email' => 'Nesprávný e-mail nebo heslo.']);
         }
         $request->session()->regenerate();
@@ -54,7 +60,10 @@ class AuthController extends Controller
         return redirect()->route('home');
     }
 
-    public function showConfirm() { return view('auth.confirm-password'); }
+    public function showConfirm()
+    {
+        return view('auth.confirm-password');
+    }
 
     public function confirm(Request $request)
     {

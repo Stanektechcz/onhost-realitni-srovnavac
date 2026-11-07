@@ -12,10 +12,10 @@
             @else
                 <p class="mt-1 text-sm text-gray-600">{{ $onhostError ?? 'Zůstatek se nepodařilo načíst.' }}</p>
             @endif
-            <form method="POST" action="{{ route('onhost.disconnect') }}" class="mt-3">@csrf<button class="btn-ghost text-sm">Zrušit propojení s ONhost ID</button></form>
+            <form method="POST" action="{{ route('onhost.disconnect') }}" class="mt-3">@csrf<button class="btn-ghost text-sm">Zrušit propojení s {{ config('oidc.brand_name') }}</button></form>
         @else
-            <p class="mt-1 text-sm text-gray-600">Propojte účet s ONhost ID a plaťte služby portálu kreditem ONhost, který můžete použít ve všech projektech ONhost.</p>
-            <a href="{{ route('onhost.connect') }}" class="btn-primary mt-3 inline-block">Propojit s ONhost ID</a>
+            <p class="mt-1 text-sm text-gray-600">Propojte účet s {{ config('oidc.brand_name') }} a plaťte služby portálu kreditem ONhost, který můžete použít ve všech projektech ONhost.</p>
+            <a href="{{ route('onhost.connect') }}" class="btn-primary mt-3 inline-block">Propojit s {{ config('oidc.brand_name') }}</a>
         @endif
     </div>
 @endif

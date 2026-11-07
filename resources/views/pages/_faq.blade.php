@@ -1,5 +1,5 @@
 {{-- Accordion časté dotazy + schema.org FAQPage. Parametr: $items = [[otázka, odpověď], …] --}}
-@php($items = $items ?? \App\Http\Controllers\PagesController::FAQ)
+@php($items = array_map(fn ($q) => str_replace(':brand', config('oidc.brand_name'), $q), $items ?? \App\Http\Controllers\PagesController::FAQ))
 @push('head')
     <script type="application/ld+json">{!! json_encode(['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => array_map(fn ($q) => ['@type' => 'Question', 'name' => $q[0], 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $q[1]]], $items)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
 @endpush

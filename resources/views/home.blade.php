@@ -37,7 +37,7 @@
             ['tag', 'Bez provize z ceny', 'Za inzerci neúčtujeme procenta z ceny nemovitosti ani z nájemného. Základní inzerát je zdarma.'],
             ['chart', 'Data se zdrojem', 'Mediány cen počítáme z inzerátů na tomto webu a doplňujeme otevřenými daty ČSÚ. Vždy uvádíme, odkud číslo je.'],
             ['shield', 'Jen vlastní nabídky', 'Zobrazujeme pouze inzeráty zadané přímo u nás majiteli a kancelářemi. Obsah jiných portálů nepřebíráme.'],
-            ['user', 'Bez povinné registrace', 'Hledání, srovnávač i kalkulačky fungují bez účtu. ONhost ID je jen volitelné přihlášení.'],
+            ['user', 'Bez povinné registrace', 'Hledání, srovnávač i kalkulačky fungují bez účtu. '.config('oidc.brand_name').' je jen volitelné přihlášení.'],
         ] as [$i, $t, $d])
             <li class="card p-6">
                 <span class="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-primary"><x-icon :name="$i" class="h-5 w-5" /></span>

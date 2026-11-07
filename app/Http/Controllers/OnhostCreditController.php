@@ -33,19 +33,19 @@ class OnhostCreditController extends Controller
         self::ensureEnabled();
         $pending = $request->session()->pull('onhost_oidc');
         if (! is_array($pending) || ! is_string($request->query('state')) || ! hash_equals($pending['state'], $request->query('state'))) {
-            return redirect()->route('dashboard')->with('error', 'Propojení s ONhost ID se nezdařilo (neplatný požadavek). Zkuste to znovu.');
+            return redirect()->route('dashboard')->with('error', 'Propojení s '.config('oidc.brand_name').' se nezdařilo (neplatný požadavek). Zkuste to znovu.');
         }
         if (! is_string($request->query('code'))) {
-            return redirect()->route('dashboard')->with('error', 'Propojení s ONhost ID bylo zrušeno.');
+            return redirect()->route('dashboard')->with('error', 'Propojení s '.config('oidc.brand_name').' bylo zrušeno.');
         }
         try {
             $id->exchangeCode($request->user(), $request->query('code'), $pending['verifier']);
         } catch (OnhostCreditException $e) {
-            return redirect()->route('dashboard')->with('error', 'Propojení s ONhost ID se nezdařilo. '.$e->userMessage());
+            return redirect()->route('dashboard')->with('error', 'Propojení s '.config('oidc.brand_name').' se nezdařilo. '.$e->userMessage());
         }
         AuditLog::record('onhost.connected', $request->user());
 
-        return redirect()->to(self::internalPath($pending['back'] ?? null) ?? route('dashboard'))->with('status', 'Účet je propojen s ONhost ID.');
+        return redirect()->to(self::internalPath($pending['back'] ?? null) ?? route('dashboard'))->with('status', 'Účet je propojen s '.config('oidc.brand_name').'.');
     }
 
     public function disconnect(Request $request, OnhostIdClient $id)
@@ -53,7 +53,7 @@ class OnhostCreditController extends Controller
         self::ensureEnabled();
         $id->disconnect($request->user());
 
-        return redirect()->route('dashboard')->with('status', 'Propojení s ONhost ID bylo zrušeno.');
+        return redirect()->route('dashboard')->with('status', 'Propojení s '.config('oidc.brand_name').' bylo zrušeno.');
     }
 
     /** "Zaplatit kreditem ONhost" for a membership plan. */

@@ -26,7 +26,7 @@
     <div class="container-page max-w-3xl">
         <h2 class="text-3xl font-bold">Jak přidat inzerát</h2>
         <ol class="mt-6 list-decimal space-y-3 pl-5">
-            <li>Zaregistrujte se e-mailem (nebo volitelně přes ONhost ID).</li>
+            <li>Zaregistrujte se e-mailem (nebo volitelně přes {{ config('oidc.brand_name') }}).</li>
             <li>Vyplňte adresu, parametry, cenu a energetickou třídu (PENB).</li>
             <li>Nahrajte fotky a odešlete inzerát ke zveřejnění.</li>
         </ol>

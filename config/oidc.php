@@ -2,6 +2,8 @@
 
 return [
     // ONhost ID (OIDC, Authorization Code + PKCE). Vypnuto (fail-closed), dokud vlastník nedodá klientské údaje.
+    // Uživatelský název služby (ONhost ID se přejmenovává na OnPass).
+    'brand_name' => env('ONHOST_ID_BRAND_NAME', 'OnPass'),
     'enabled' => (bool) env('ONHOST_OIDC_ENABLED', false),
     'issuer' => rtrim((string) env('ONHOST_OIDC_ISSUER', 'https://id.onhost.cz'), '/'),
     'client_id' => env('ONHOST_OIDC_CLIENT_ID'),

@@ -9,7 +9,7 @@
         <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="remember" value="1"> Zapamatovat si mě</label>
         <button class="btn-primary w-full">Přihlásit</button>
         @if (app(\App\Auth\OnhostIdClient::class)->enabled())
-            <a href="{{ route('oidc.redirect') }}" class="btn-ghost block w-full text-center" data-oidc-login>Přihlásit přes ONhost ID</a>
+            <a href="{{ route('oidc.redirect') }}" class="btn-ghost block w-full text-center" data-oidc-login>Přihlásit přes {{ config('oidc.brand_name') }}</a>
         @endif
         <p class="text-center text-sm">Nemáte účet? <a href="{{ route('register') }}" class="font-semibold text-pink">Registrace</a></p>
     </form>
