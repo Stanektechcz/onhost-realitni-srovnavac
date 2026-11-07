@@ -41,7 +41,7 @@ return [
     ],
 
     // Bezpečnostní hlavičky (CSP, X-Frame-Options, HSTS v produkci přes HTTPS).
-    'security_headers' => (bool) env('REALITY_SECURITY_HEADERS', true),
+    'security_headers' => (bool) env('REALITY_SECURITY_HEADERS', false),
 
     // Kam se přeposílají zprávy z /kontakt (prázdné = zprávy se jen uloží do DB).
     'contact_email' => env('REALITY_CONTACT_EMAIL'),

@@ -133,6 +133,7 @@ it('writes a heartbeat and warns admins when it is stale', function () {
 });
 
 it('sends security headers with a CSP that allows the self-hosted map', function () {
+    config(['reality.security_headers' => true]);
     $r = $this->get(route('home'))->assertOk();
     $r->assertHeader('X-Frame-Options', 'DENY')->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin')->assertHeaderMissing('Strict-Transport-Security');
     expect($r->headers->get('Content-Security-Policy'))->toContain("frame-ancestors 'none'")->toContain('https://tiles.openfreemap.org')->toContain("object-src 'none'")
@@ -140,6 +141,7 @@ it('sends security headers with a CSP that allows the self-hosted map', function
 });
 
 it('sends HSTS only in production over https', function () {
+    config(['reality.security_headers' => true]);
     app()->detectEnvironment(fn () => 'production');
     $this->get('https://localhost/')->assertHeader('Strict-Transport-Security');
     $this->get('http://localhost/')->assertHeaderMissing('Strict-Transport-Security');
