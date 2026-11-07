@@ -25,14 +25,35 @@ class Agency extends Model
         });
     }
 
-    public function getRouteKeyName(): string { return 'slug'; }
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 
-    public function owner(): BelongsTo { return $this->belongsTo(User::class, 'claimed_by_user_id'); }
-    public function brokers(): HasMany { return $this->hasMany(Broker::class); }
-    public function reviews(): HasMany { return $this->hasMany(AgencyReview::class); }
-    public function claims(): HasMany { return $this->hasMany(AgencyClaim::class); }
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'claimed_by_user_id');
+    }
 
-    public function isVerified(): bool { return $this->verified_at !== null && $this->claimed_by_user_id !== null; }
+    public function brokers(): HasMany
+    {
+        return $this->hasMany(Broker::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(AgencyReview::class);
+    }
+
+    public function claims(): HasMany
+    {
+        return $this->hasMany(AgencyClaim::class);
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->verified_at !== null && $this->claimed_by_user_id !== null;
+    }
 
     /** Public listings of the agency's verified feed account (never imported ones: Listing::public()). */
     public function publicListings(): Builder

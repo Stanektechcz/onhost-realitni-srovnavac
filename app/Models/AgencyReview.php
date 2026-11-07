@@ -13,17 +13,41 @@ class AgencyReview extends Model
 
     protected $fillable = ['rating', 'text'];
 
-    protected function casts(): array { return ['verified' => 'boolean', 'rating' => 'integer', 'moderated_at' => 'datetime']; }
+    protected function casts(): array
+    {
+        return ['verified' => 'boolean', 'rating' => 'integer', 'moderated_at' => 'datetime'];
+    }
 
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
-    public function agency(): BelongsTo { return $this->belongsTo(Agency::class); }
-    public function broker(): BelongsTo { return $this->belongsTo(Broker::class); }
-    public function reports(): HasMany { return $this->hasMany(AgencyReviewReport::class); }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
-    public function scopePublished(Builder $q): Builder { return $q->where('status', 'published'); }
+    public function agency(): BelongsTo
+    {
+        return $this->belongsTo(Agency::class);
+    }
+
+    public function broker(): BelongsTo
+    {
+        return $this->belongsTo(Broker::class);
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(AgencyReviewReport::class);
+    }
+
+    public function scopePublished(Builder $q): Builder
+    {
+        return $q->where('status', 'published');
+    }
 
     /** The agency the review is about (directly or through its broker). */
-    public function targetAgency(): ?Agency { return $this->agency ?? $this->broker?->agency; }
+    public function targetAgency(): ?Agency
+    {
+        return $this->agency ?? $this->broker?->agency;
+    }
 
     public function refreshTargets(): void
     {

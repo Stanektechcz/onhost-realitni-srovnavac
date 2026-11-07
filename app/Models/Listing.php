@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\MarketStats;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -37,7 +38,7 @@ class Listing extends Model
         static::creating(function (Listing $l) {
             $l->slug ??= Str::lower(Str::random(10));
         });
-        $flush = fn () => \App\Services\MarketStats::flush();
+        $flush = fn () => MarketStats::flush();
         static::updated(function (Listing $l) {
             $old = $l->getOriginal('price_halere');
             if ($l->wasChanged('price_halere') && $old && $l->price_halere) {
@@ -48,13 +49,35 @@ class Listing extends Model
         static::deleted($flush);
     }
 
-    public function getRouteKeyName(): string { return 'slug'; }
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
-    public function photos(): HasMany { return $this->hasMany(ListingPhoto::class)->orderBy('position'); }
-    public function reports(): HasMany { return $this->hasMany(Report::class); }
-    public function stats(): HasMany { return $this->hasMany(ListingStat::class); }
-    public function priceChanges(): HasMany { return $this->hasMany(ListingPriceChange::class)->orderByDesc('created_at')->orderByDesc('id'); }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function photos(): HasMany
+    {
+        return $this->hasMany(ListingPhoto::class)->orderBy('position');
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    public function stats(): HasMany
+    {
+        return $this->hasMany(ListingStat::class);
+    }
+
+    public function priceChanges(): HasMany
+    {
+        return $this->hasMany(ListingPriceChange::class)->orderByDesc('created_at')->orderByDesc('id');
+    }
 
     /** Percent drop of the current price against the highest recorded price (null when not lower). */
     public function priceDropPercent(): ?int
@@ -67,11 +90,26 @@ class Listing extends Model
 
         return $pct >= 1 ? $pct : null;
     }
-    public function slots(): HasMany { return $this->hasMany(ViewingSlot::class)->orderBy('starts_at'); }
-    public function messages(): HasMany { return $this->hasMany(Message::class); }
-    public function favorites(): HasMany { return $this->hasMany(Favorite::class); }
 
-    public function isBoosted(): bool { return $this->boosted_until?->isFuture() ?? false; }
+    public function slots(): HasMany
+    {
+        return $this->hasMany(ViewingSlot::class)->orderBy('starts_at');
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    public function favorites(): HasMany
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    public function isBoosted(): bool
+    {
+        return $this->boosted_until?->isFuture() ?? false;
+    }
 
     public function pricePerM2(): ?int
     {
@@ -84,7 +122,10 @@ class Listing extends Model
         return $this->offer_type === 'rent' && $this->price_halere !== null ? $this->price_halere + (int) $this->fees_halere : null;
     }
 
-    public function isGov(): bool { return $this->source === 'gov'; }
+    public function isGov(): bool
+    {
+        return $this->source === 'gov';
+    }
 
     /** Only internal/gov, active, non-expired listings are ever shown publicly. */
     public function scopePublic(Builder $q): Builder
@@ -95,7 +136,10 @@ class Listing extends Model
             ->where(fn ($w) => $w->whereNull('expires_at')->orWhere('expires_at', '>', now()));
     }
 
-    public function scopeImported(Builder $q): Builder { return $q->where('source', 'imported'); }
+    public function scopeImported(Builder $q): Builder
+    {
+        return $q->where('source', 'imported');
+    }
 
     public function isPublic(): bool
     {
@@ -106,34 +150,34 @@ class Listing extends Model
     public function scopeFilter(Builder $q, array $f): Builder
     {
         $q->when($f['offer_type'] ?? null, fn ($q, $v) => $q->where('offer_type', $v))
-          ->when($f['property_type'] ?? null, fn ($q, $v) => $q->where('property_type', $v))
-          ->when($f['disposition'] ?? null, fn ($q, $v) => $q->whereIn('disposition', (array) $v))
-          ->when($f['city'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w->where('city', 'like', "%$v%")->orWhere('district', 'like', "%$v%")))
-          ->when($f['price_min'] ?? null, fn ($q, $v) => $q->where('price_halere', '>=', (int) $v * 100))
-          ->when($f['price_max'] ?? null, fn ($q, $v) => $q->where('price_halere', '<=', (int) $v * 100))
-          ->when($f['area_min'] ?? null, fn ($q, $v) => $q->where('area_m2', '>=', (float) $v))
-          ->when($f['area_max'] ?? null, fn ($q, $v) => $q->where('area_m2', '<=', (float) $v))
-          ->when($f['penb'] ?? null, fn ($q, $v) => $q->whereIn('penb', (array) $v))
-          ->when($f['furnishing'] ?? null, fn ($q, $v) => $q->where('furnishing', $v))
-          ->when($f['q'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w->where('title', 'like', "%$v%")->orWhere('description', 'like', "%$v%")->orWhere('street', 'like', "%$v%")))
-          ->when($f['floor_min'] ?? null, fn ($q, $v) => $q->where('floor', '>=', (int) $v))
-          ->when($f['available_by'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w->whereNull('available_from')->orWhere('available_from', '<=', $v)))
-          ->when($f['bbox'] ?? null, function ($q, $v) {
-              [$w, $s, $e, $n] = array_map('floatval', explode(',', $v));
-              $q->whereBetween('lat', [min($s, $n), max($s, $n)])->whereBetween('lng', [min($w, $e), max($w, $e)]);
-          })
-          ->when($f['poly'] ?? null, function ($q, $v) {
-              $poly = self::parsePolygon($v);
-              if (count($poly) < 3) {
-                  return;
-              }
-              $lats = array_column($poly, 1);
-              $lngs = array_column($poly, 0);
-              $ids = (clone $q)->whereBetween('lat', [min($lats), max($lats)])->whereBetween('lng', [min($lngs), max($lngs)])
-                  ->limit(5000)->get(['id', 'lat', 'lng'])
-                  ->filter(fn ($l) => self::pointInPolygon((float) $l->lng, (float) $l->lat, $poly))->pluck('id');
-              $q->whereIn('id', $ids);
-          });
+            ->when($f['property_type'] ?? null, fn ($q, $v) => $q->where('property_type', $v))
+            ->when($f['disposition'] ?? null, fn ($q, $v) => $q->whereIn('disposition', (array) $v))
+            ->when($f['city'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w->where('city', 'like', "%$v%")->orWhere('district', 'like', "%$v%")))
+            ->when($f['price_min'] ?? null, fn ($q, $v) => $q->where('price_halere', '>=', (int) $v * 100))
+            ->when($f['price_max'] ?? null, fn ($q, $v) => $q->where('price_halere', '<=', (int) $v * 100))
+            ->when($f['area_min'] ?? null, fn ($q, $v) => $q->where('area_m2', '>=', (float) $v))
+            ->when($f['area_max'] ?? null, fn ($q, $v) => $q->where('area_m2', '<=', (float) $v))
+            ->when($f['penb'] ?? null, fn ($q, $v) => $q->whereIn('penb', (array) $v))
+            ->when($f['furnishing'] ?? null, fn ($q, $v) => $q->where('furnishing', $v))
+            ->when($f['q'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w->where('title', 'like', "%$v%")->orWhere('description', 'like', "%$v%")->orWhere('street', 'like', "%$v%")))
+            ->when($f['floor_min'] ?? null, fn ($q, $v) => $q->where('floor', '>=', (int) $v))
+            ->when($f['available_by'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w->whereNull('available_from')->orWhere('available_from', '<=', $v)))
+            ->when($f['bbox'] ?? null, function ($q, $v) {
+                [$w, $s, $e, $n] = array_map('floatval', explode(',', $v));
+                $q->whereBetween('lat', [min($s, $n), max($s, $n)])->whereBetween('lng', [min($w, $e), max($w, $e)]);
+            })
+            ->when($f['poly'] ?? null, function ($q, $v) {
+                $poly = self::parsePolygon($v);
+                if (count($poly) < 3) {
+                    return;
+                }
+                $lats = array_column($poly, 1);
+                $lngs = array_column($poly, 0);
+                $ids = (clone $q)->whereBetween('lat', [min($lats), max($lats)])->whereBetween('lng', [min($lngs), max($lngs)])
+                    ->limit(5000)->get(['id', 'lat', 'lng'])
+                    ->filter(fn ($l) => self::pointInPolygon((float) $l->lng, (float) $l->lat, $poly))->pluck('id');
+                $q->whereIn('id', $ids);
+            });
         foreach (['has_balcony', 'has_elevator', 'has_parking', 'pets_allowed'] as $flag) {
             if (! empty($f[$flag])) {
                 $q->where($flag, true);
@@ -174,7 +218,10 @@ class Listing extends Model
         return $in;
     }
 
-    public function priceCzk(): ?int { return $this->price_halere === null ? null : intdiv($this->price_halere, 100); }
+    public function priceCzk(): ?int
+    {
+        return $this->price_halere === null ? null : intdiv($this->price_halere, 100);
+    }
 
     public static function formatCzk(?int $halere): string
     {

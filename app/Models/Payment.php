@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\DocumentNumber;
 use App\Support\Operator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Payment extends Model
 {
-    protected $fillable = ['user_id', 'service', 'provider', 'provider_ref', 'amount_halere', 'commission_halere', 'currency', 'status', 'meta', 'seller_snapshot'];
+    protected $fillable = ['user_id', 'service', 'provider', 'provider_ref', 'amount_halere', 'commission_halere', 'currency', 'status', 'meta', 'seller_snapshot', 'document_number'];
 
     protected function casts(): array
     {
@@ -21,6 +22,7 @@ class Payment extends Model
     {
         static::creating(function (Payment $p): void {
             $p->seller_snapshot ??= Operator::snapshot();
+            $p->document_number ??= DocumentNumber::next('payment', (string) ($p->seller_snapshot['slug'] ?? Operator::slug()));
         });
     }
 

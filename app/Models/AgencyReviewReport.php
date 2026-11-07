@@ -9,5 +9,8 @@ class AgencyReviewReport extends Model
 {
     protected $fillable = ['reporter_id', 'reporter_email', 'reason', 'description'];
 
-    public function review(): BelongsTo { return $this->belongsTo(AgencyReview::class, 'agency_review_id'); }
+    public function review(): BelongsTo
+    {
+        return $this->belongsTo(AgencyReview::class, 'agency_review_id');
+    }
 }

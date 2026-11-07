@@ -11,9 +11,15 @@ class AuditLog extends Model
 
     protected $fillable = ['user_id', 'action', 'subject_type', 'subject_id', 'data', 'ip'];
 
-    protected function casts(): array { return ['data' => 'array']; }
+    protected function casts(): array
+    {
+        return ['data' => 'array'];
+    }
 
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public static function record(string $action, ?Model $subject = null, array $data = []): self
     {

@@ -34,22 +34,24 @@ $operators = [
         'phone' => '',
         'bank' => ['iban' => '', 'bic' => '', 'account' => ''],
         'footer' => 'Provozovatel: Adrian Staněk, IČO 08094616, neplátce DPH',
+        'number_prefix' => '', // prefix číselné řady dokladů; prázdné = odvozeno ze slugu (App\Support\DocumentNumber)
     ],
+    // Historie (validFrom): místo jednoho záznamu smí slug nést seznam verzí, aktivní je ta s nejvyšším valid_from <= teď;
+    // nic se nemaže, např. 'adrian-stanek' => [[...'valid_from' => '2020-01-01T00:00:00+01:00'], [...'valid_from' => '2027-01-01T00:00:00+01:00']].
 ];
 
 $active = (string) env('ECOSYSTEM_OPERATOR', 'osvc-stanek-08094616');
-foreach ($operators as $slug => $op) {
-    // Výchozí zveřejnění ulice: OSVČ ne (bydliště), firmy ano; pole je bool, takže jde přepsat přes env.
-    $op['show_address_public'] ??= ($op['legal_form'] ?? 'other') !== 'osvc';
-    $operators[$slug]['show_address_public'] = $op['show_address_public'];
+$applyEnv = static function (string $slug, array $op) use ($active): array {
+    $out = $op;
+    $out['show_address_public'] ??= ($op['legal_form'] ?? 'other') !== 'osvc';
     $prefix = 'ECOSYSTEM_OPERATOR_'.strtoupper(str_replace('-', '_', $slug)).'_';
     $vatPayerOverride = env($prefix.'VAT_PAYER');
-    foreach ($op as $field => $value) {
+    foreach ($out as $field => $value) {
         if (is_array($value)) {
             foreach (array_keys($value) as $sub) {
                 $env = env($prefix.strtoupper($field.'_'.$sub));
                 if ($env !== null) {
-                    $operators[$slug][$field][$sub] = (string) $env;
+                    $out[$field][$sub] = (string) $env;
                 }
             }
 
@@ -59,17 +61,24 @@ foreach ($operators as $slug => $op) {
         if ($env === null) {
             continue;
         }
-        $operators[$slug][$field] = is_bool($value)
+        $out[$field] = is_bool($value)
             ? (is_bool($env) ? $env : filter_var($env, FILTER_VALIDATE_BOOL))
             : (string) $env;
     }
     // ECOSYSTEM_OPERATOR_VAT_MODE platí pro aktivní subjekt; starší přepis <SLUG>_VAT_PAYER=true znamená payer.
     if (in_array($active, [$slug, $op['id'] ?? null], true) && env('ECOSYSTEM_OPERATOR_VAT_MODE') !== null) {
-        $operators[$slug]['vat_mode'] = (string) env('ECOSYSTEM_OPERATOR_VAT_MODE');
-    } elseif ($vatPayerOverride !== null && ($operators[$slug]['vat_mode'] ?? 'non_payer') === 'non_payer') {
-        $operators[$slug]['vat_mode'] = $operators[$slug]['vat_payer'] ? 'payer' : 'non_payer';
+        $out['vat_mode'] = (string) env('ECOSYSTEM_OPERATOR_VAT_MODE');
+    } elseif ($vatPayerOverride !== null && ($out['vat_mode'] ?? 'non_payer') === 'non_payer') {
+        $out['vat_mode'] = $out['vat_payer'] ? 'payer' : 'non_payer';
     }
-    $operators[$slug]['vat_payer'] = in_array($operators[$slug]['vat_mode'] ?? 'non_payer', ['payer', 'group'], true);
+    $out['vat_payer'] = in_array($out['vat_mode'] ?? 'non_payer', ['payer', 'group'], true);
+
+    return $out;
+};
+foreach ($operators as $slug => $entry) {
+    $operators[$slug] = array_is_list($entry)
+        ? array_map(static fn (array $v): array => $applyEnv($slug, $v), $entry)
+        : $applyEnv($slug, $entry);
 }
 
 return [

@@ -9,10 +9,20 @@ class AgencyClaim extends Model
 {
     protected $fillable = ['message'];
 
-    protected function casts(): array { return ['decided_at' => 'datetime']; }
+    protected function casts(): array
+    {
+        return ['decided_at' => 'datetime'];
+    }
 
-    public function agency(): BelongsTo { return $this->belongsTo(Agency::class); }
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
+    public function agency(): BelongsTo
+    {
+        return $this->belongsTo(Agency::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     /** Grants the claim: the user's account becomes the agency's verified feed account. */
     public function approve(string $method): void

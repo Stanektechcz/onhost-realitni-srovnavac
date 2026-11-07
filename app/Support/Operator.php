@@ -2,23 +2,70 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Carbon;
+
 /**
  * Jediný zdroj údajů o provozovateli projektu (kontrakt onhost-operator/1, config/operator.php).
  * Neznámý slug v ECOSYSTEM_OPERATOR spadne na výchozí subjekt, aby web nikdy neukázal prázdného prodávajícího.
  */
 final class Operator
 {
-    /** Klíč aktivního subjektu v registru; ECOSYSTEM_OPERATOR smí být slug (alias) i id. */
+    /** Klíč aktivního subjektu v registru; ECOSYSTEM_OPERATOR smí být slug (alias) i id kterékoli verze. */
     public static function slug(): string
     {
         $want = (string) config('operator.operator', '');
-        foreach ((array) config('operator.operators', []) as $slug => $op) {
-            if ($want === (string) $slug || $want === (string) ($op['id'] ?? '')) {
+        foreach ((array) config('operator.operators', []) as $slug => $entry) {
+            if ($want === (string) $slug) {
                 return (string) $slug;
+            }
+            foreach (self::versions((string) $slug) as $op) {
+                if ($want === (string) ($op['id'] ?? '')) {
+                    return (string) $slug;
+                }
             }
         }
 
         return (string) config('operator.default', 'adrian-stanek');
+    }
+
+    /**
+     * Všechny verze subjektu (validFrom historie): záznam registru je buď jedna verze, nebo seznam verzí.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function versions(string $slug): array
+    {
+        $entry = (array) config("operator.operators.$slug", []);
+        if ($entry === []) {
+            return [];
+        }
+
+        return array_is_list($entry) ? array_values(array_filter($entry, 'is_array')) : [$entry];
+    }
+
+    /**
+     * Verze subjektu platná v okamžiku $at: nejvyšší valid_from <= $at (prázdné valid_from = odjakživa). Když ještě žádná
+     * neplatí, vrátí nejstarší, aby web nikdy neukázal prázdného prodávajícího. @return array<string, mixed>
+     */
+    public static function resolve(string $slug, ?\DateTimeInterface $at = null): array
+    {
+        $at = Carbon::instance($at ?? now());
+        $best = null;
+        $bestFrom = null;
+        $earliest = null;
+        $earliestFrom = null;
+        foreach (self::versions($slug) as $op) {
+            $raw = trim((string) ($op['valid_from'] ?? ''));
+            $from = $raw === '' ? Carbon::createFromTimestamp(0) : Carbon::parse($raw);
+            if ($earliestFrom === null || $from->lt($earliestFrom)) {
+                [$earliest, $earliestFrom] = [$op, $from];
+            }
+            if ($from->lte($at) && ($bestFrom === null || $from->gte($bestFrom))) {
+                [$best, $bestFrom] = [$op, $from];
+            }
+        }
+
+        return (array) ($best ?? $earliest ?? []);
     }
 
     /** Identifikátor subjektu (např. osvc-stanek-<IČO>), ukládá se do snapshotů. */
@@ -27,12 +74,12 @@ final class Operator
         return (string) (self::get('id') ?: self::slug());
     }
 
-    /** Úplné údaje aktivního provozovatele (+ slug). @return array<string, mixed> */
+    /** Úplné údaje aktivního provozovatele (+ slug): aktivní verze podle valid_from. @return array<string, mixed> */
     public static function current(): array
     {
         $slug = self::slug();
 
-        return ['slug' => $slug] + (array) config("operator.operators.$slug", []);
+        return ['slug' => $slug] + self::resolve($slug);
     }
 
     public static function get(string $field, mixed $default = null): mixed
@@ -80,6 +127,7 @@ final class Operator
             'registry_note' => (string) ($op['registry_note'] ?? ''),
             'privacy_url' => (string) ($op['privacy_url'] ?? ''),
             'valid_from' => (string) ($op['valid_from'] ?? ''),
+            'number_prefix' => DocumentNumber::prefix($op['slug']),
             'captured_at' => now()->toIso8601String(),
         ];
     }
