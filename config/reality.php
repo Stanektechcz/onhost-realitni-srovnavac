@@ -63,7 +63,7 @@ return [
 
     'payments' => [
         'provider' => env('REALITY_PAYMENT_PROVIDER', 'stub'), // stub (local only) | comgate
-        // own gateway of the portal (merchant = operator from config/legal.php); test mode by default, secrets only in the server environment
+        // own gateway of the portal (merchant = operator from config/operator.php); test mode by default, secrets only in the server environment
         'comgate' => [
             'merchant' => env('COMGATE_MERCHANT', ''),
             'secret' => env('COMGATE_SECRET', ''),

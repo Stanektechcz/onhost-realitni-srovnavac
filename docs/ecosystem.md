@@ -49,3 +49,9 @@ moderace → `removed/withdrawn`; job `ExpireListings` → `removed/expired`.
 
 `tests/Feature/EcosystemTest.php` (vypnuté příznaky, formát katalogu, zdraví 200/503, podpisy včetně rotace
 a prošlého času, idempotence, odchozí události, nikdy importované inzeráty, odmítnutí ne-https odběratele).
+
+## Provozovatel (kontrakt onhost-operator/1)
+
+Údaje o provozovateli jsou jen v `config/operator.php` (`App\Support\Operator`): registr subjektů, aktivní
+`ECOSYSTEM_OPERATOR` (výchozí `adrian-stanek`, neplátce DPH) a přepisy `ECOSYSTEM_OPERATOR_<SLUG>_<POLE>`. Čte z něj
+patička, O nás, kontakt, FAQ, GDPR a katalog (`seller` u každé nabídky). Platby ukládají `payments.seller_snapshot`.

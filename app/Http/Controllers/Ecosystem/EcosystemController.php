@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Ecosystem;
 use App\Http\Controllers\Controller;
 use App\Models\MembershipPlan;
 use App\Services\Ecosystem\BusSignature;
+use App\Support\Operator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -45,6 +46,10 @@ class EcosystemController extends Controller
                     ];
                 });
         }
+
+        // kontrakt onhost-operator/1: u každé nabídky veřejná část provozovatele
+        $seller = Operator::seller();
+        $offers = array_map(fn (array $o): array => $o + ['seller' => $seller], $offers);
 
         return response()->json([
             'format' => 'onhost-ecosystem-catalog/1',

@@ -18,8 +18,9 @@ function wave3Admin(): User
 
 function wave3Company(): void
 {
-    config(['legal.name' => 'ONhost Reality s.r.o.', 'legal.form' => 'sro', 'legal.ico' => '12345678',
-        'legal.dic' => 'CZ12345678', 'legal.vat_payer' => true, 'legal.register' => 'C 999 vedená u KS v Brně']);
+    config(['operator.operators.reality-sro' => ['id' => 'sro-reality-12345678', 'name' => 'ONhost Reality s.r.o.', 'legal_form' => 'sro',
+        'ico' => '12345678', 'dic' => 'CZ12345678', 'vat_mode' => 'payer', 'vat_payer' => true, 'registry' => 'C 999 vedená u KS v Brně'],
+        'operator.operator' => 'reality-sro']);
 }
 
 // --- 1. Provozovatel z konfigurace ---
@@ -43,7 +44,7 @@ it('switches all texts to a VAT-paying company', function () {
     config(['reality.features.memberships' => true]);
     $this->get(route('pricing'))->assertOk()->assertSee('vč. DPH')->assertDontSee('nejsme plátci DPH');
     wave3Admin();
-    $this->get(route('admin.settings'))->assertOk()->assertSee('ONhost Reality s.r.o., s.r.o., IČO 12345678, plátce DPH');
+    $this->get(route('admin.settings'))->assertOk()->assertSee('ONhost Reality s.r.o., IČO 12345678, plátce DPH');
 });
 
 it('has no hard-coded operator IČO outside config', function () {

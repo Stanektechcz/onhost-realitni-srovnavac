@@ -8,7 +8,7 @@
     <div class="card mt-4 p-4 text-sm">
         <p class="font-semibold">Provozovatel</p>
         <p class="mt-1">{{ $legal }}</p>
-        <p class="mt-1 text-xs text-gray-500">Nastavují proměnné <code>LEGAL_NAME</code>, <code>LEGAL_FORM</code> (osvc | sro | as), <code>LEGAL_ICO</code>, <code>LEGAL_DIC</code>, <code>LEGAL_VAT_PAYER</code>, <code>LEGAL_REGISTER</code>. Ceny se značí: {{ \App\Support\LegalEntity::priceNote() }}.</p>
+        <p class="mt-1 text-xs text-gray-500">Nastavuje registr provozovatelů <code>config/operator.php</code> (kontrakt onhost-operator/1): <code>ECOSYSTEM_OPERATOR</code>, <code>ECOSYSTEM_OPERATOR_VAT_MODE</code> a <code>ECOSYSTEM_OPERATOR_&lt;SLUG&gt;_&lt;POLE&gt;</code>. Ceny se značí: {{ \App\Support\LegalEntity::priceNote() }}.</p>
     </div>
     <div class="card mt-4 p-4 text-sm">
         <p class="font-semibold">Platební poskytovatel</p>

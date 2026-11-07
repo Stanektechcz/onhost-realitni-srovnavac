@@ -46,7 +46,8 @@ it('serves the catalog in the exact format without personal data', function () {
     $res = $this->getJson('/ecosystem/catalog.json')->assertOk()->assertJsonPath('format', 'onhost-ecosystem-catalog/1');
     $offers = $res->json('offers');
     expect($offers)->toHaveCount(1)
-        ->and(array_keys($offers[0]))->toBe(['key', 'name', 'description', 'price_minor', 'currency', 'period', 'order_path'])
+        ->and(array_keys($offers[0]))->toBe(['key', 'name', 'description', 'price_minor', 'currency', 'period', 'order_path', 'seller'])
+        ->and($offers[0]['seller'])->toBe(['name' => 'Adrian Staněk', 'ico' => '08094616', 'dic' => '', 'vat_payer' => false, 'legal_form' => 'osvc'])
         ->and($offers[0]['price_minor'])->toBeNull();
 });
 

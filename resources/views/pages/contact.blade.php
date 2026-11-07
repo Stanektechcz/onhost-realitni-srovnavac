@@ -46,7 +46,7 @@
     <aside class="space-y-4">
         <div class="card p-6">
             <h2 class="text-lg font-bold">Provozovatel</h2>
-            <p class="mt-2 text-sm">{{ \App\Support\LegalEntity::name() }}, {{ \App\Support\LegalEntity::formLabel() }}<br>IČO {{ \App\Support\LegalEntity::ico() }}, {{ \App\Support\LegalEntity::vatStatus() }}@if (config('legal.register'))<br>{{ config('legal.register') }}@endif</p>
+            <p class="mt-2 text-sm">{{ \App\Support\LegalEntity::name() }}, {{ \App\Support\LegalEntity::formLabel() }}<br>IČO {{ \App\Support\LegalEntity::ico() }}, {{ \App\Support\LegalEntity::vatStatus() }}@if (\App\Support\LegalEntity::register() !== '')<br>{{ \App\Support\LegalEntity::register() }}@endif</p>
         </div>
         <div class="card p-6 text-sm">
             <h2 class="text-lg font-bold">Než napíšete</h2>

@@ -2,50 +2,76 @@
 
 namespace App\Support;
 
-/** Údaje o provozovateli z config/legal.php – jediný zdroj pravdy pro patičku, právní texty i platby. */
+/**
+ * Prezentační pohled na provozovatele pro patičku, právní texty i platby. Údaje se berou jen z registru
+ * provozovatelů (App\Support\Operator, config/operator.php, kontrakt onhost-operator/1).
+ */
 class LegalEntity
 {
-    public const FORMS = ['osvc' => 'OSVČ', 'sro' => 's.r.o.', 'as' => 'a.s.'];
+    public const FORMS = ['osvc' => 'OSVČ', 'sro' => 's.r.o.', 'as' => 'a.s.', 'zs' => 'z.s.'];
 
     public static function get(string $key): mixed
     {
-        return config('legal.'.$key);
+        return Operator::get($key);
     }
 
     public static function name(): string
     {
-        return (string) config('legal.name');
+        return (string) Operator::get('name', '');
     }
 
     public static function ico(): string
     {
-        return (string) config('legal.ico');
+        return (string) Operator::get('ico', '');
+    }
+
+    public static function form(): string
+    {
+        return (string) Operator::get('legal_form', '');
     }
 
     public static function formLabel(): string
     {
-        return self::FORMS[config('legal.form')] ?? (string) config('legal.form');
+        return self::FORMS[self::form()] ?? self::form();
     }
 
     public static function formDescription(): string
     {
-        return config('legal.form') === 'osvc' ? 'fyzická osoba podnikající' : 'právnická osoba';
+        return self::form() === 'osvc' ? 'fyzická osoba podnikající' : 'právnická osoba';
     }
 
     public static function isVatPayer(): bool
     {
-        return (bool) config('legal.vat_payer');
+        return Operator::vatPayer();
+    }
+
+    public static function dic(): string
+    {
+        return (string) Operator::get('dic', '');
+    }
+
+    /** Zápis v obchodním rejstříku; u OSVČ prázdné (živnostenský rejstřík se v kontaktech neuvádí). */
+    public static function register(): string
+    {
+        return self::form() === 'osvc' ? '' : (string) Operator::get('registry', '');
     }
 
     public static function vatStatus(): string
     {
-        return self::isVatPayer() ? 'plátce DPH'.(config('legal.dic') ? ', DIČ '.config('legal.dic') : '') : 'neplátce DPH';
+        return self::isVatPayer() ? 'plátce DPH'.(self::dic() !== '' ? ', DIČ '.self::dic() : '') : 'neplátce DPH';
     }
 
-    /** Např. „Jméno, OSVČ, IČO …, neplátce DPH“. */
+    /** Např. „Jméno, OSVČ, IČO …, neplátce DPH“ (forma se neopakuje, když je už v názvu). */
     public static function displayLine(): string
     {
-        return self::name().', '.self::formLabel().', IČO '.self::ico().', '.self::vatStatus();
+        $form = self::formLabel();
+        $name = self::name();
+        $parts = [$name];
+        if ($form !== '' && ! str_ends_with($name, $form)) {
+            $parts[] = $form;
+        }
+
+        return implode(', ', $parts).', IČO '.self::ico().', '.self::vatStatus();
     }
 
     /** Štítek k cenám. */
