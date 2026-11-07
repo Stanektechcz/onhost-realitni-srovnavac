@@ -20,6 +20,7 @@
         <dl class="grid gap-3 sm:grid-cols-[10rem_1fr]">
             <dt class="font-semibold">Provozovatel</dt><dd>{{ \App\Support\LegalEntity::name() }}</dd>
             <dt class="font-semibold">Právní forma</dt><dd>{{ \App\Support\LegalEntity::formLabel() }} ({{ \App\Support\LegalEntity::formDescription() }})</dd>
+            @if (\App\Support\LegalEntity::publicAddress() !== '')<dt class="font-semibold">Sídlo</dt><dd>{{ \App\Support\LegalEntity::publicAddress() }}</dd>@endif
             <dt class="font-semibold">IČO</dt><dd>{{ \App\Support\LegalEntity::ico() }}</dd><dt class="font-semibold">DPH</dt><dd>{{ \App\Support\LegalEntity::vatStatus() }}</dd>
             <dt class="font-semibold">Kontakt</dt><dd><a href="{{ route('pages.contact') }}" class="underline">Kontaktní formulář</a></dd>
         </dl>
