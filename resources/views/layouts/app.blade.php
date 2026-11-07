@@ -145,7 +145,7 @@
     </div>
     <div class="border-t">
         <div class="container-page flex flex-wrap justify-between gap-2 py-5 text-xs text-muted-foreground">
-            <span>© {{ date('Y') }} ONhost Reality · provozovatel Adrian Staněk, OSVČ, IČO 08094616. Cenové analýzy jsou orientační a vycházejí z inzerovaných (nikoli prodejních) cen.</span>
+            <span>© {{ date('Y') }} ONhost Reality · provozovatel {{ \App\Support\LegalEntity::displayLine() }}. Cenové analýzy jsou orientační a vycházejí z inzerovaných (nikoli prodejních) cen.</span>
             <span>Mapy © <a class="underline" href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · OpenFreeMap</span>
         </div>
     </div>

@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Carbon\CarbonImmutable;
+
 /** Orientační výpočty (nejde o finanční poradenství ani doporučení produktu). Logika je zrcadlena v resources/js/calculators.js. */
 class Calculators
 {
@@ -173,8 +175,8 @@ class Calculators
     public static function saleTax(float $salePrice, float $purchasePrice, float $costs, string $acquired, string $sold, float $residenceYears = 0, bool $isHome = true, bool $reinvest = false, float $otherIncome = 0): array
     {
         $r = config('reality_rules.tax');
-        $acq = \Carbon\CarbonImmutable::parse($acquired);
-        $sale = \Carbon\CarbonImmutable::parse($sold);
+        $acq = CarbonImmutable::parse($acquired);
+        $sale = CarbonImmutable::parse($sold);
         $testYears = $acq->lt('2021-01-01') ? 5 : 10;
         $exemptFrom = $acq->addYears($testYears)->addDay();
         $profit = max(0.0, $salePrice - $purchasePrice - $costs);
@@ -206,7 +208,7 @@ class Calculators
      */
     public static function noticeEnd(string $delivered, int $months = 3): array
     {
-        $start = \Carbon\CarbonImmutable::parse($delivered)->startOfMonth()->addMonth();
+        $start = CarbonImmutable::parse($delivered)->startOfMonth()->addMonth();
 
         return ['start' => $start->toDateString(), 'end' => $start->addMonths($months)->subDay()->toDateString()];
     }

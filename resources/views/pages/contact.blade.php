@@ -1,4 +1,3 @@
-@php($op = \App\Http\Controllers\PagesController::OPERATOR)
 @php($topic = old('topic', array_key_exists((string) request('tema'), \App\Http\Controllers\PagesController::TOPICS) ? request('tema') : 'obecne'))
 @extends('layouts.app', ['title' => 'Kontakt', 'canonical' => route('pages.contact'), 'description' => 'Napište nám – dotazy k inzerci, srovnávači, osobním údajům nebo importu pro realitní kanceláře.', 'showErrorSummary' => false])
 @section('content')
@@ -47,7 +46,7 @@
     <aside class="space-y-4">
         <div class="card p-6">
             <h2 class="text-lg font-bold">Provozovatel</h2>
-            <p class="mt-2 text-sm">{{ $op['name'] }}, {{ $op['form'] }}<br>IČO {{ $op['ico'] }}</p>
+            <p class="mt-2 text-sm">{{ \App\Support\LegalEntity::name() }}, {{ \App\Support\LegalEntity::formLabel() }}<br>IČO {{ \App\Support\LegalEntity::ico() }}, {{ \App\Support\LegalEntity::vatStatus() }}@if (config('legal.register'))<br>{{ config('legal.register') }}@endif</p>
         </div>
         <div class="card p-6 text-sm">
             <h2 class="text-lg font-bold">Než napíšete</h2>
