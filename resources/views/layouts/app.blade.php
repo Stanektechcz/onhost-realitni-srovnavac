@@ -13,7 +13,6 @@
     <meta property="og:title" content="{{ $title ?? config('app.name') }}">
     <meta property="og:description" content="{{ $description ?? 'Pronájmy a prodej nemovitostí bez realitky.' }}">
     @isset($ogImage)<meta property="og:image" content="{{ $ogImage }}">@endisset
-    <link rel="preconnect" href="https://unpkg.com" crossorigin>
     <script>try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}</script>
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
