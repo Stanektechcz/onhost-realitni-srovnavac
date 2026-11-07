@@ -4,26 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Mail\ContactFormSubmitted;
 use App\Models\ContactMessage;
-use App\Support\Operator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
 /** Veřejné informační stránky srovnávače (landing podstránky, kontakt, FAQ). */
 class PagesController extends Controller
 {
-    /** Provozovatel – jediný pravdivý údaj o subjektu. */
-    /** Provozovatel z config/operator.php (kontrakt onhost-operator/1). @return array{name: string, form: string, ico: string} */
-    public static function operator(): array
-    {
-        $forms = ['osvc' => 'OSVČ', 'sro' => 's.r.o.', 'as' => 'a.s.', 'zs' => 'z.s.'];
-
-        $name = (string) Operator::get('name');
-        $form = $forms[(string) Operator::get('legal_form')] ?? '';
-
-        // „XYZ s.r.o.“ už formu nese v názvu – neopakovat ji.
-        return ['name' => $name, 'form' => str_ends_with($name, $form) ? '' : $form, 'ico' => (string) Operator::get('ico')];
-    }
-
     public const TOPICS = [
         'obecne' => 'Obecný dotaz',
         'inzerce' => 'Inzerce a účet',
@@ -33,14 +19,6 @@ class PagesController extends Controller
     ];
 
     /** Časté dotazy: [otázka, odpověď]. Jen ověřitelná tvrzení. */
-    /** „Adrian Staněk, OSVČ, IČO 08094616“ – jméno, forma (je-li třeba) a IČO. */
-    public static function operatorLabel(): string
-    {
-        $op = self::operator();
-
-        return $op['name'].($op['form'] !== '' ? ', '.$op['form'] : '').', IČO '.$op['ico'];
-    }
-
     public const FAQ = [
         ['Kolik stojí inzerce?', 'Základní inzerát přidáte zdarma. Neúčtujeme provizi z ceny nemovitosti ani z nájemného. Pokud budou nabízeny volitelné placené služby, uvidíte jejich cenu předem a nic se neplatí automaticky.'],
         ['Potřebuji k používání účet :brand?', 'Ne. Web funguje samostatně – vyhledávání, srovnávač, kalkulačky i průvodce používáte bez registrace. Pro přidání inzerátu stačí běžný účet s e-mailem. Přihlášení přes :brand je jen volitelná možnost.'],

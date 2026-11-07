@@ -57,7 +57,7 @@ class OwnerToolsController extends Controller
         $this->authorize('update', $listing);
         abort_unless(in_array($listing->status, ['active', 'expired'], true), 409);
         $listing->forceFill([
-            'status' => 'active', 'renewed_at' => now(),
+            'status' => 'active', 'renewed_at' => now(), 'expiry_reminded_at' => null,
             'published_at' => $listing->status === 'expired' ? now() : $listing->published_at,
             'expires_at' => now()->addDays(config('reality.listing_lifetime_days')),
         ])->save();

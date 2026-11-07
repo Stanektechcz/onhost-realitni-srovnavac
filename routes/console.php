@@ -2,25 +2,29 @@
 
 use App\Jobs\ExpireListings;
 use App\Jobs\SendSavedSearchAlerts;
+use App\Services\Benchmarks\CsuBenchmarks;
+use App\Services\Contracts\RentalContractService;
+use App\Services\Maintenance;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::job(new ExpireListings)->hourly();
-Schedule::call(fn () => config('reality.features.contracts') && app(App\Services\Contracts\RentalContractService::class)->expireStale())->daily()->name('contracts:expire');
+Schedule::call(fn () => config('reality.features.contracts') && app(RentalContractService::class)->expireStale())->daily()->name('contracts:expire');
 Schedule::command('reality:alerts:send')->dailyAt('07:00')->when(fn () => (bool) config('reality.features.alerts'))->withoutOverlapping();
 Schedule::command('reality:agencies:import-all')->monthlyOn(10, '03:00')->when(fn () => (bool) config('reality.features.agencies_auto_import'))->withoutOverlapping(720)->runInBackground();
 Schedule::command('reality:benchmarks:fetch')->monthlyOn(5, '04:00');
+Schedule::command('reality:maintenance')->dailyAt('05:30')->withoutOverlapping();
 Schedule::command('reality:gov:fetch')->twiceDaily(6, 18);
 Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')->everyMinute()->withoutOverlapping();
 
-Artisan::command('reality:benchmarks:fetch {--csv : Also rewrite database/data/market_benchmarks_csu.csv} {--from-csv : Load committed CSV instead of downloading}', function (App\Services\Benchmarks\CsuBenchmarks $csu) {
-    $path = base_path(App\Services\Benchmarks\CsuBenchmarks::CSV_PATH);
+Artisan::command('reality:benchmarks:fetch {--csv : Also rewrite database/data/market_benchmarks_csu.csv} {--from-csv : Load committed CSV instead of downloading}', function (CsuBenchmarks $csu) {
+    $path = base_path(CsuBenchmarks::CSV_PATH);
     if ($this->option('from-csv')) {
         $rows = $csu->readCsv($path);
     } else {
         try {
             $rows = $csu->fetch();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->error('Stažení z ČSÚ selhalo: '.$e->getMessage());
 
             return 1;
@@ -68,3 +72,15 @@ Artisan::command('reality:agencies:import-all {--force : Spustit i při vypnuté
 
     return $failed === count($regions) ? 1 : 0;
 })->purpose('Měsíční import realitních kanceláří z ARES po krajích');
+
+Artisan::command('reality:maintenance', function (Maintenance $m) {
+    if (! config('reality.automation.enabled')) {
+        $this->warn('Automatická údržba je vypnutá (REALITY_AUTOMATION_ENABLED).');
+
+        return 0;
+    }
+    $r = $m->run();
+    $this->info("Vypršelo: {$r['expired']}, připomínek: {$r['reminded']}, smazaných zpráv: {$r['pruned']}.");
+
+    return 0;
+})->purpose('Denní údržba: expirace inzerátů, připomínky vlastníkům, čištění vyřízených zpráv');

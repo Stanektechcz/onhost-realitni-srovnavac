@@ -30,7 +30,7 @@ class ComgatePaymentProvider implements PaymentProvider
     {
         $created = $this->client->create((int) $payment->amount_halere, (string) ($payment->currency ?: 'CZK'), [
             'reference' => 'reality-'.$payment->id,
-            'label' => 'ONhost Reality',
+            'label' => 'ONhost Reality', // Comgate: max. 16 znaků; obchodník = provozovatel z config/operator.php
             'email' => (string) optional($payment->user)->email,
             'url_paid' => route('payments.return', $payment),
             'url_cancelled' => route('payments.return', $payment),

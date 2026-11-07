@@ -61,7 +61,7 @@ it('freezes the seller on a payment so switching the operator keeps the old docu
 });
 
 it('keeps the default footer text identical', function () {
-    test()->get('/')->assertSee('provozovatel Adrian Staněk, OSVČ, IČO 08094616.', false);
+    test()->get('/')->assertSee('provozovatel Adrian Staněk, OSVČ, IČO 08094616, neplátce DPH.', false);
 });
 
 it('uses the entity id as default, accepts the adrian-stanek alias and derives vat_payer from ECOSYSTEM_OPERATOR_VAT_MODE', function () {

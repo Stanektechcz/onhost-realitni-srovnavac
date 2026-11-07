@@ -7,6 +7,11 @@
             <div class="card p-4"><p class="font-display text-3xl font-bold text-pink">{{ $v }}</p><p class="text-sm">{{ $k }}</p></div>
         @endforeach
     </div>
+    <div class="mt-4 grid gap-4 sm:grid-cols-4">
+        @foreach ($kpi as $k => $v)
+            <div class="card p-4"><p class="font-display text-2xl font-bold">{{ $v }}</p><p class="text-sm">{{ $k }}</p></div>
+        @endforeach
+    </div>
     <h2 class="mt-8 font-display text-xl font-bold">Audit log</h2>
     <div class="card mt-2 overflow-x-auto">
         <table class="w-full text-left text-sm">

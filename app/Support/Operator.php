@@ -21,7 +21,7 @@ final class Operator
         return (string) config('operator.default', 'adrian-stanek');
     }
 
-    /** Identifikátor subjektu (např. osvc-stanek-08094616), ukládá se do snapshotů. */
+    /** Identifikátor subjektu (např. osvc-stanek-<IČO>), ukládá se do snapshotů. */
     public static function id(): string
     {
         return (string) (self::get('id') ?: self::slug());
@@ -83,7 +83,7 @@ final class Operator
         ];
     }
 
-    /** Text pro patičku, např. „Provozovatel: Adrian Staněk, IČO 08094616, neplátce DPH“. */
+    /** Text pro patičku, např. „Provozovatel: <jméno>, IČO <IČO>, neplátce DPH“. */
     public static function footer(): string
     {
         return (string) self::get('footer', '');

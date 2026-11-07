@@ -17,6 +17,13 @@ return [
         'price_history' => (bool) env('REALITY_FEATURE_PRICE_HISTORY', false),
     ],
 
+    // Denní údržba (reality:maintenance): expirace, připomínky vlastníkům, čištění vyřízených zpráv.
+    'automation' => [
+        'enabled' => (bool) env('REALITY_AUTOMATION_ENABLED', false),
+        'reminder_days' => 3,
+        'contact_retention_days' => 180,
+    ],
+
     // Kam se přeposílají zprávy z /kontakt (prázdné = zprávy se jen uloží do DB).
     'contact_email' => env('REALITY_CONTACT_EMAIL'),
 

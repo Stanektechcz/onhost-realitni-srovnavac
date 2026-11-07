@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Listing;
 use Illuminate\Validation\Rule;
 
 class ListingSteps
@@ -64,11 +65,15 @@ class ListingSteps
     }
 
     /** Is the listing complete enough to be submitted? Returns list of missing step numbers. */
-    public static function missing(\App\Models\Listing $l): array
+    public static function missing(Listing $l): array
     {
         $missing = [];
-        if (! $l->offer_type || ! $l->property_type || ! $l->price_halere || ! $l->area_m2 || ! $l->city) $missing[] = 1;
-        if (! $l->penb || ! $l->description) $missing[] = 2;
+        if (! $l->offer_type || ! $l->property_type || ! $l->price_halere || ! $l->area_m2 || ! $l->city) {
+            $missing[] = 1;
+        }
+        if (! $l->penb || ! $l->description) {
+            $missing[] = 2;
+        }
 
         return $missing;
     }
