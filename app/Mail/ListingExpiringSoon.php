@@ -15,7 +15,7 @@ class ListingExpiringSoon extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Listing $listing) {}
+    public function __construct(public Listing $listing, public ?string $renewUrl = null) {}
 
     public function envelope(): Envelope
     {

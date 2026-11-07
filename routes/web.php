@@ -25,6 +25,8 @@ Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/hledat', [SearchController::class, 'index'])->name('search');
 Route::get('/api/mapa', [SearchController::class, 'map'])->middleware('throttle:60,1')->name('search.map');
 Route::get('/hlidaci-pes/{search}/odhlasit', \App\Http\Controllers\SavedSearchUnsubscribeController::class)->middleware(['signed', 'throttle:20,1'])->name('searches.unsubscribe');
+Route::get('/inzerat/{listing}/prodlouzit', [\App\Http\Controllers\RenewLinkController::class, 'show'])->middleware(['signed', 'throttle:20,1'])->name('listings.renew-link');
+Route::post('/inzerat/{listing}/prodlouzit', [\App\Http\Controllers\RenewLinkController::class, 'renew'])->middleware(['signed', 'throttle:20,1'])->name('listings.renew-link.store');
 Route::get('/api/okoli', \App\Http\Controllers\AmenitiesController::class)->middleware('throttle:30,1')->name('amenities');
 Route::get('/inzerat/{listing}', [ListingController::class, 'show'])->name('listings.show');
 Route::post('/inzerat/{listing}/zprava', [ContactController::class, 'message'])->middleware('throttle:contact')->name('listings.message');

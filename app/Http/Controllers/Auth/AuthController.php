@@ -46,6 +46,7 @@ class AuthController extends Controller
             throw ValidationException::withMessages(['email' => 'Nesprávný e-mail nebo heslo.']);
         }
         $request->session()->regenerate();
+        Auth::user()->forceFill(['last_login_at' => now()])->saveQuietly();
         AuditLog::record('user.login', Auth::user());
 
         return redirect()->intended(route('dashboard'));

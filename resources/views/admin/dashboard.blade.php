@@ -2,6 +2,12 @@
 @section('content')
 <div class="mx-auto max-w-6xl px-4 py-6">
     @include('admin._nav')
+    @if (config('reality.automation.enabled') && $heartbeat->stale())
+        <div class="card mb-4 border-destructive p-4 text-destructive" role="alert">
+            <strong>Plánovač neběží:</strong> denní údržba (reality:maintenance) neproběhla
+            {{ $heartbeat->last() ? 'od '.$heartbeat->last()->format('j. n. Y H:i') : 'ani jednou' }} (limit {{ config('reality.automation.heartbeat_max_hours') }} h). Zkontrolujte cron <code>schedule:run</code>.
+        </div>
+    @endif
     <div class="grid gap-4 sm:grid-cols-5">
         @foreach (['Ke schválení' => $pending, 'Veřejné' => $active, 'Otevřená nahlášení' => $openReports, 'Uživatelé' => $users, 'Importováno (interní)' => $imported] as $k => $v)
             <div class="card p-4"><p class="font-display text-3xl font-bold text-pink">{{ $v }}</p><p class="text-sm">{{ $k }}</p></div>
