@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 class ListingStat extends Model
 {
@@ -11,7 +11,10 @@ class ListingStat extends Model
 
     protected $fillable = ['listing_id', 'day', 'views', 'saves', 'inquiries', 'bookings'];
 
-    protected function casts(): array { return ['day' => 'date']; }
+    protected function casts(): array
+    {
+        return ['day' => 'date'];
+    }
 
     public const COUNTERS = ['views', 'saves', 'inquiries', 'bookings'];
 
@@ -24,7 +27,7 @@ class ListingStat extends Model
         if (! $updated) {
             try {
                 static::create(['listing_id' => $listing->id, 'day' => $day, $counter => 1]);
-            } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+            } catch (UniqueConstraintViolationException) {
                 static::where('listing_id', $listing->id)->whereDate('day', $day)->increment($counter);
             }
         }

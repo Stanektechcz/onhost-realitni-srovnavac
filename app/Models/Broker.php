@@ -11,7 +11,10 @@ class Broker extends Model
 {
     protected $fillable = ['name', 'bio', 'specialization', 'is_public'];
 
-    protected function casts(): array { return ['is_public' => 'boolean', 'rating_avg' => 'float']; }
+    protected function casts(): array
+    {
+        return ['is_public' => 'boolean', 'rating_avg' => 'float'];
+    }
 
     protected static function booted(): void
     {
@@ -20,10 +23,20 @@ class Broker extends Model
         });
     }
 
-    public function getRouteKeyName(): string { return 'slug'; }
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 
-    public function agency(): BelongsTo { return $this->belongsTo(Agency::class); }
-    public function reviews(): HasMany { return $this->hasMany(AgencyReview::class); }
+    public function agency(): BelongsTo
+    {
+        return $this->belongsTo(Agency::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(AgencyReview::class);
+    }
 
     public function recalcRating(): void
     {

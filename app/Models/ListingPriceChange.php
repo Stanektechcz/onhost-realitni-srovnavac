@@ -16,5 +16,8 @@ class ListingPriceChange extends Model
         return ['old_price_halere' => 'integer', 'new_price_halere' => 'integer', 'created_at' => 'datetime'];
     }
 
-    public function listing(): BelongsTo { return $this->belongsTo(Listing::class); }
+    public function listing(): BelongsTo
+    {
+        return $this->belongsTo(Listing::class);
+    }
 }

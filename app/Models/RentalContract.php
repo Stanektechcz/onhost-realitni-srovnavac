@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 class RentalContract extends Model
 {
     public const STATUSES = ['draft', 'signed_landlord', 'sent', 'signed_both', 'cancelled', 'expired'];
+
     public const EDITABLE = ['draft', 'signed_landlord', 'sent'];
 
     protected $fillable = ['listing_id', 'landlord_id', 'tenant_id', 'tenant_email', 'data', 'rent_halere', 'fees_halere', 'deposit_halere'];
@@ -31,16 +32,45 @@ class RentalContract extends Model
         static::creating(fn (RentalContract $c) => $c->uuid ??= (string) Str::uuid());
     }
 
-    public function getRouteKeyName(): string { return 'uuid'; }
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
 
-    public function listing(): BelongsTo { return $this->belongsTo(Listing::class); }
-    public function landlord(): BelongsTo { return $this->belongsTo(User::class, 'landlord_id'); }
-    public function tenant(): BelongsTo { return $this->belongsTo(User::class, 'tenant_id'); }
-    public function signatures(): HasMany { return $this->hasMany(RentalContractSignature::class)->orderBy('signed_at'); }
-    public function validSignatures(): HasMany { return $this->signatures()->whereNull('invalidated_at'); }
-    public function payments(): MorphMany { return $this->morphMany(Payment::class, 'payable'); }
+    public function listing(): BelongsTo
+    {
+        return $this->belongsTo(Listing::class);
+    }
 
-    public function isEditable(): bool { return in_array($this->status, self::EDITABLE, true); }
+    public function landlord(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'landlord_id');
+    }
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'tenant_id');
+    }
+
+    public function signatures(): HasMany
+    {
+        return $this->hasMany(RentalContractSignature::class)->orderBy('signed_at');
+    }
+
+    public function validSignatures(): HasMany
+    {
+        return $this->signatures()->whereNull('invalidated_at');
+    }
+
+    public function payments(): MorphMany
+    {
+        return $this->morphMany(Payment::class, 'payable');
+    }
+
+    public function isEditable(): bool
+    {
+        return in_array($this->status, self::EDITABLE, true);
+    }
 
     public function roleOf(?User $user): ?string
     {
@@ -62,9 +92,15 @@ class RentalContract extends Model
         return $this->validSignatures()->where('role', $role)->first();
     }
 
-    public function d(string $key, mixed $default = null): mixed { return data_get($this->data, $key, $default); }
+    public function d(string $key, mixed $default = null): mixed
+    {
+        return data_get($this->data, $key, $default);
+    }
 
-    public function firstPaymentHalere(): int { return $this->deposit_halere + $this->rent_halere + $this->fees_halere; }
+    public function firstPaymentHalere(): int
+    {
+        return $this->deposit_halere + $this->rent_halere + $this->fees_halere;
+    }
 
     public function statusLabel(): string
     {

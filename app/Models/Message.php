@@ -9,10 +9,20 @@ class Message extends Model
 {
     protected $fillable = ['listing_id', 'sender_id', 'recipient_id', 'sender_name', 'sender_email', 'sender_phone', 'body', 'relay_token', 'ip'];
 
-    protected function casts(): array { return ['read_at' => 'datetime', 'archived_at' => 'datetime']; }
+    protected function casts(): array
+    {
+        return ['read_at' => 'datetime', 'archived_at' => 'datetime'];
+    }
 
-    public function listing(): BelongsTo { return $this->belongsTo(Listing::class); }
-    public function recipient(): BelongsTo { return $this->belongsTo(User::class, 'recipient_id'); }
+    public function listing(): BelongsTo
+    {
+        return $this->belongsTo(Listing::class);
+    }
+
+    public function recipient(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'recipient_id');
+    }
 
     /** Masked e-mail for display (jan.novak@example.cz -> j*******k@e******.cz). */
     public static function mask(string $email): string

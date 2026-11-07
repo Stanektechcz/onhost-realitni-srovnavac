@@ -10,12 +10,28 @@ class ViewingSlot extends Model
 {
     protected $fillable = ['listing_id', 'starts_at', 'duration_min'];
 
-    protected function casts(): array { return ['starts_at' => 'datetime', 'booked_at' => 'datetime']; }
+    protected function casts(): array
+    {
+        return ['starts_at' => 'datetime', 'booked_at' => 'datetime'];
+    }
 
-    public function listing(): BelongsTo { return $this->belongsTo(Listing::class); }
-    public function booker(): BelongsTo { return $this->belongsTo(User::class, 'booked_by'); }
+    public function listing(): BelongsTo
+    {
+        return $this->belongsTo(Listing::class);
+    }
 
-    public function scopeFree(Builder $q): Builder { return $q->whereNull('booked_by')->where('starts_at', '>', now()); }
+    public function booker(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'booked_by');
+    }
 
-    public function isFree(): bool { return $this->booked_by === null && $this->starts_at->isFuture(); }
+    public function scopeFree(Builder $q): Builder
+    {
+        return $q->whereNull('booked_by')->where('starts_at', '>', now());
+    }
+
+    public function isFree(): bool
+    {
+        return $this->booked_by === null && $this->starts_at->isFuture();
+    }
 }
