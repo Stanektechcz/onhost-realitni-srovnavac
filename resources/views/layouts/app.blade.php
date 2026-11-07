@@ -24,6 +24,7 @@
 @php($nav = [
     [route('search', ['offer_type' => 'rent']), 'Pronájem', request()->routeIs('search') && request('offer_type') === 'rent'],
     [route('search', ['offer_type' => 'sale']), 'Prodej', request()->routeIs('search') && request('offer_type') === 'sale'],
+    [route('pages.comparator'), 'Srovnávač', request()->routeIs('pages.comparator') || request()->routeIs('compare')],
     [route('insights.index'), 'Ceny a lokality', request()->routeIs('insights.*')],
     [route('tools.calculators'), 'Kalkulačky', request()->routeIs('tools.calculators')],
     [route('guides.index'), 'Průvodce', request()->routeIs('guides.*')],
@@ -122,6 +123,16 @@
                 <li><a href="{{ route('tools.calculators', ['tab' => 'vynos']) }}" class="hover:text-foreground">Výnos z pronájmu</a></li>
                 <li><a href="{{ route('guides.show', 'predani-bytu') }}" class="hover:text-foreground">Předání bytu</a></li>
                 @if (config('reality.features.memberships'))<li><a href="{{ route('pricing') }}" class="hover:text-foreground">Členství</a></li>@endif
+                <li><a href="{{ route('pages.owners') }}" class="hover:text-foreground">Pro majitele</a></li>
+                <li><a href="{{ route('pages.agencies') }}" class="hover:text-foreground">Pro realitní kanceláře</a></li>
+            </ul>
+            <h2 class="mb-3 mt-6 font-sans text-sm font-semibold">O službě</h2>
+            <ul class="space-y-2 text-sm text-muted-foreground">
+                <li><a href="{{ route('pages.how') }}" class="hover:text-foreground">Jak to funguje</a></li>
+                <li><a href="{{ route('pages.comparator') }}" class="hover:text-foreground">Srovnávač</a></li>
+                <li><a href="{{ route('pages.faq') }}" class="hover:text-foreground">Časté dotazy</a></li>
+                <li><a href="{{ route('pages.about') }}" class="hover:text-foreground">O nás</a></li>
+                <li><a href="{{ route('pages.contact') }}" class="hover:text-foreground">Kontakt</a></li>
             </ul>
         </div>
         <div>
@@ -135,7 +146,7 @@
     </div>
     <div class="border-t">
         <div class="container-page flex flex-wrap justify-between gap-2 py-5 text-xs text-muted-foreground">
-            <span>© {{ date('Y') }} ONhost Reality. Cenové analýzy jsou orientační a vycházejí z inzerovaných (nikoli prodejních) cen.</span>
+            <span>© {{ date('Y') }} ONhost Reality · provozovatel Adrian Staněk, OSVČ, IČO 08094616. Cenové analýzy jsou orientační a vycházejí z inzerovaných (nikoli prodejních) cen.</span>
             <span>Mapy © <a class="underline" href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · OpenFreeMap</span>
         </div>
     </div>

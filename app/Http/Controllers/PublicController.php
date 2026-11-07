@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agency;
+use App\Models\Broker;
 use App\Models\Listing;
 use App\Models\MembershipPlan;
+use App\Services\Localities;
+use App\Services\MarketStats;
+use Illuminate\Support\Carbon;
 
 class PublicController extends Controller
 {
@@ -14,7 +19,7 @@ class PublicController extends Controller
         'pravidla-moderace' => 'Pravidla moderace a nahlašování obsahu (DSA)',
     ];
 
-    public function home(\App\Services\MarketStats $stats)
+    public function home(MarketStats $stats)
     {
         $latest = Listing::public()->with('photos')->latest('published_at')->limit(8)->get();
         $count = Listing::public()->count();
@@ -47,26 +52,29 @@ class PublicController extends Controller
             [route('home'), null, 'daily'], [route('search', ['offer_type' => 'rent']), null, 'hourly'], [route('search', ['offer_type' => 'sale']), null, 'hourly'],
             [route('insights.index'), null, 'daily'],
         ];
-        $localities = app(\App\Services\Localities::class);
+        $localities = app(Localities::class);
         $agg = $localities->aggregates();
         foreach ($localities->all() as $slug => $loc) {
             $a = $agg[$slug];
-            $last = $a['lastmod'] ? \Illuminate\Support\Carbon::parse($a['lastmod'])->toAtomString() : null;
-            if (\App\Services\Localities::hasContent($a)) {
+            $last = $a['lastmod'] ? Carbon::parse($a['lastmod'])->toAtomString() : null;
+            if (Localities::hasContent($a)) {
                 $urls[] = [route('insights.show', $slug), $last, 'weekly'];
             }
             foreach (['rent' => 'localities.rent', 'sale' => 'localities.sale'] as $offer => $name) {
-                if (\App\Services\Localities::hasContent($a, $offer)) {
+                if (Localities::hasContent($a, $offer)) {
                     $urls[] = [route($name, $slug), $last, 'daily'];
                 }
             }
         }
         $urls[] = [route('agencies.index'), null, 'daily'];
-        foreach (\App\Models\Agency::query()->get(['id', 'slug', 'updated_at']) as $a) {
+        foreach (Agency::query()->get(['id', 'slug', 'updated_at']) as $a) {
             $urls[] = [route('agencies.show', $a), $a->updated_at?->toAtomString(), 'weekly'];
         }
-        foreach (\App\Models\Broker::with('agency:id,slug')->where('is_public', true)->get(['id', 'slug', 'agency_id', 'updated_at']) as $b) {
+        foreach (Broker::with('agency:id,slug')->where('is_public', true)->get(['id', 'slug', 'agency_id', 'updated_at']) as $b) {
             $urls[] = [route('agencies.broker', [$b->agency, $b]), $b->updated_at?->toAtomString(), 'monthly'];
+        }
+        foreach (['pages.how', 'pages.owners', 'pages.agencies', 'pages.agencies.docs', 'pages.comparator', 'pages.about', 'pages.contact', 'pages.faq'] as $page) {
+            $urls[] = [route($page), null, 'monthly'];
         }
         $urls[] = [route('tools.calculators'), null, null];
         $urls[] = [route('guides.index'), null, null];
