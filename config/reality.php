@@ -22,7 +22,26 @@ return [
         'enabled' => (bool) env('REALITY_AUTOMATION_ENABLED', false),
         'reminder_days' => 3,
         'contact_retention_days' => 180,
+        // Odkaz „Prodloužit“ v připomínce (podepsaný URL bez přihlášení, platí 7 dní, jednou na připomínku).
+        'renew_link' => (bool) env('REALITY_RENEW_LINK_ENABLED', false),
+        'renew_link_days' => 7,
+        // Bez heartbeatu údržby déle než tolik hodin => výstraha v administraci.
+        'heartbeat_max_hours' => 48,
     ],
+
+    // GDPR minimalizace: anonymizace vypršelých inzerátů a mazání zpráv starších než N let (v reality:maintenance).
+    'retention' => [
+        'enabled' => (bool) env('REALITY_RETENTION_ENABLED', false),
+        'years' => (int) env('REALITY_RETENTION_YEARS', 2),
+    ],
+
+    // Týdenní souhrn KPI administrátorům (pondělí 07:00).
+    'weekly_report' => [
+        'enabled' => (bool) env('REALITY_WEEKLY_REPORT_ENABLED', false),
+    ],
+
+    // Bezpečnostní hlavičky (CSP, X-Frame-Options, HSTS v produkci přes HTTPS).
+    'security_headers' => (bool) env('REALITY_SECURITY_HEADERS', true),
 
     // Kam se přeposílají zprávy z /kontakt (prázdné = zprávy se jen uloží do DB).
     'contact_email' => env('REALITY_CONTACT_EMAIL'),

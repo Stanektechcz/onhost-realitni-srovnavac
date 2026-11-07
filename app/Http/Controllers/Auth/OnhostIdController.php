@@ -100,6 +100,7 @@ class OnhostIdController extends Controller
 
         Auth::login($linked);
         $request->session()->regenerate();
+        $linked->forceFill(['last_login_at' => now()])->saveQuietly();
         AuditLog::record('auth.oidc_login', $linked);
 
         return redirect()->intended(route('dashboard'));
@@ -169,6 +170,7 @@ class OnhostIdController extends Controller
         AuditLog::record('auth.oidc_registered', $user, ['terms_accepted' => true]);
         Auth::login($user);
         $request->session()->regenerate();
+        $user->forceFill(['last_login_at' => now()])->saveQuietly();
         AuditLog::record('auth.oidc_login', $user);
 
         return redirect()->intended(route('dashboard'));

@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
-use App\Models\ContactMessage;
 use App\Models\Listing;
 use App\Models\Report;
 use App\Models\User;
+use App\Services\AdminKpi;
+use App\Services\Heartbeat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -22,12 +23,8 @@ class AdminController extends Controller
             'openReports' => Report::where('status', 'open')->count(),
             'users' => User::count(),
             'imported' => Listing::imported()->count(),
-            'kpi' => [
-                'Nové inzeráty (7 dní)' => Listing::where('source', 'internal')->where('created_at', '>=', now()->subDays(7))->count(),
-                'Nové inzeráty (30 dní)' => Listing::where('source', 'internal')->where('created_at', '>=', now()->subDays(30))->count(),
-                'Nové kontaktní zprávy' => ContactMessage::whereNull('handled_at')->count(),
-                'Aktivní (neblokovaní) uživatelé' => User::whereNull('blocked_at')->count(),
-            ],
+            'kpi' => app(AdminKpi::class)->all(),
+            'heartbeat' => app(Heartbeat::class),
             'audit' => AuditLog::with('user')->latest('id')->limit(15)->get(),
         ]);
     }

@@ -29,7 +29,7 @@ class Listing extends Model
             'floor' => 'integer',
             'has_elevator' => 'boolean', 'has_balcony' => 'boolean', 'has_parking' => 'boolean', 'pets_allowed' => 'boolean',
             'available_from' => 'date', 'published_at' => 'datetime', 'expires_at' => 'datetime',
-            'boosted_until' => 'datetime', 'renewed_at' => 'datetime',
+            'boosted_until' => 'datetime', 'renewed_at' => 'datetime', 'anonymized_at' => 'datetime', 'expiry_reminded_at' => 'datetime',
         ];
     }
 

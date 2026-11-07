@@ -115,5 +115,5 @@ it('shows KPI tiles on admin dashboard', function () {
     ContactMessage::create(['name' => 'A', 'email' => 'a@example.cz', 'topic' => 'obecne', 'body' => 'x']);
     wave3Admin();
     $this->get('/admin')->assertOk()->assertSee('Nové inzeráty (7 dní)')->assertSee('Nové inzeráty (30 dní)')
-        ->assertSee('Nové kontaktní zprávy')->assertSee('Aktivní (neblokovaní) uživatelé')->assertSee('Ke schválení');
+        ->assertSee('Nové kontaktní zprávy')->assertSee('Aktivní uživatelé (30 dní)')->assertSee('Ke schválení');
 });

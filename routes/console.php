@@ -2,10 +2,15 @@
 
 use App\Jobs\ExpireListings;
 use App\Jobs\SendSavedSearchAlerts;
+use App\Mail\WeeklyKpiReport;
+use App\Models\User;
+use App\Services\AdminKpi;
 use App\Services\Benchmarks\CsuBenchmarks;
 use App\Services\Contracts\RentalContractService;
+use App\Services\Heartbeat;
 use App\Services\Maintenance;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::job(new ExpireListings)->hourly();
@@ -14,6 +19,7 @@ Schedule::command('reality:alerts:send')->dailyAt('07:00')->when(fn () => (bool)
 Schedule::command('reality:agencies:import-all')->monthlyOn(10, '03:00')->when(fn () => (bool) config('reality.features.agencies_auto_import'))->withoutOverlapping(720)->runInBackground();
 Schedule::command('reality:benchmarks:fetch')->monthlyOn(5, '04:00');
 Schedule::command('reality:maintenance')->dailyAt('05:30')->withoutOverlapping();
+Schedule::command('reality:report:weekly')->weeklyOn(1, '07:00')->when(fn () => (bool) config('reality.weekly_report.enabled'))->withoutOverlapping();
 Schedule::command('reality:gov:fetch')->twiceDaily(6, 18);
 Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')->everyMinute()->withoutOverlapping();
 
@@ -80,7 +86,25 @@ Artisan::command('reality:maintenance', function (Maintenance $m) {
         return 0;
     }
     $r = $m->run();
-    $this->info("Vypršelo: {$r['expired']}, připomínek: {$r['reminded']}, smazaných zpráv: {$r['pruned']}.");
+    $this->info("Vypršelo: {$r['expired']}, připomínek: {$r['reminded']}, smazaných zpráv: {$r['pruned']}, anonymizováno: {$r['anonymized']}, smazaných dotazů: {$r['messages']}.");
 
     return 0;
 })->purpose('Denní údržba: expirace inzerátů, připomínky vlastníkům, čištění vyřízených zpráv');
+
+Artisan::command('reality:report:weekly', function (AdminKpi $kpi, Heartbeat $hb) {
+    if (! config('reality.weekly_report.enabled')) {
+        $this->warn('Týdenní souhrn je vypnutý (REALITY_WEEKLY_REPORT_ENABLED).');
+
+        return 0;
+    }
+    $admins = User::where('role', 'admin')->whereNull('blocked_at')->pluck('email')->filter()->all();
+    if (! $admins) {
+        $this->warn('Žádný administrátor s e-mailem.');
+
+        return 0;
+    }
+    Mail::to($admins)->send(new WeeklyKpiReport($kpi->all(), $hb->stale()));
+    $this->info('Souhrn odeslán '.count($admins).' administrátorům.');
+
+    return 0;
+})->purpose('Týdenní souhrn KPI e-mailem administrátorům');

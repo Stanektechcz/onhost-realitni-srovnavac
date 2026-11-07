@@ -20,7 +20,7 @@ class User extends Authenticatable
 
     protected function casts(): array
     {
-        return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'is_banned' => 'boolean', 'blocked_at' => 'datetime', 'feed_autopublish' => 'boolean', 'feed_last_used_at' => 'datetime', 'feed_import_password' => 'encrypted'];
+        return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'is_banned' => 'boolean', 'blocked_at' => 'datetime', 'feed_autopublish' => 'boolean', 'feed_last_used_at' => 'datetime', 'feed_import_password' => 'encrypted', 'last_login_at' => 'datetime'];
     }
 
     public function isAdmin(): bool
