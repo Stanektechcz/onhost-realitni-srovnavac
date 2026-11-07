@@ -75,6 +75,7 @@ final class Operator
             'vat_payer' => (bool) ($op['vat_payer'] ?? false),
             'vat_id' => (string) ($op['vat_id'] ?? ''),
             'address' => (array) ($op['address'] ?? []),
+            'show_address_public' => LegalEntity::showAddressPublic(),
             'registry' => (string) ($op['registry'] ?? ''),
             'registry_note' => (string) ($op['registry_note'] ?? ''),
             'privacy_url' => (string) ($op['privacy_url'] ?? ''),

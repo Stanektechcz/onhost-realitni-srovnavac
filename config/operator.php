@@ -8,6 +8,8 @@
  *                                              (výchozí non_payer; vat_payer se odvozuje: payer|group)
  *   ECOSYSTEM_OPERATOR_<SLUG>_<POLE>=<hodnota>  přepsání pole (např. ECOSYSTEM_OPERATOR_ADRIAN_STANEK_VAT_PAYER=true,
  *                                               ADDRESS_CITY, BANK_IBAN …)
+ *   ECOSYSTEM_OPERATOR_<SLUG>_SHOW_ADDRESS_PUBLIC=true|false  ulice sídla na veřejném webu (patička, pravidla, kontakt,
+ *                                               JSON-LD); výchozí false u OSVČ (bydliště), true u firem. Doklady ji mají vždy.
  * Schéma: program-2026-10/12-PRAVNI-SUBJEKTY-a-konfigurace.md §6.1. Nový subjekt (dceřiná firma) se přidá sem do 'operators'. Žádná tajemství (hesla, API klíče) sem nepatří.
  * Doklady (faktury, objednávky, souhlasy s VOP) ukládají snapshot – změna platí jen pro nové doklady.
  */
@@ -23,6 +25,7 @@ $operators = [
         'vat_payer' => false, // odvozeno z vat_mode (payer|group)
         'vat_id' => '',
         'address' => ['street' => 'Molákova 2145/5', 'city' => 'Brno', 'zip' => '628 00', 'country' => 'CZ'],
+        'show_address_public' => false, // OSVČ: sídlo = bydliště, na webu jen obec; doklady vždy plnou adresu
         'registry' => 'fyzická osoba podnikající na základě živnostenského oprávnění, zapsaná v živnostenském rejstříku',
         'registry_note' => 'Fyzická osoba zapsaná v živnostenském rejstříku.',
         'privacy_url' => '',
@@ -36,6 +39,9 @@ $operators = [
 
 $active = (string) env('ECOSYSTEM_OPERATOR', 'osvc-stanek-08094616');
 foreach ($operators as $slug => $op) {
+    // Výchozí zveřejnění ulice: OSVČ ne (bydliště), firmy ano; pole je bool, takže jde přepsat přes env.
+    $op['show_address_public'] ??= ($op['legal_form'] ?? 'other') !== 'osvc';
+    $operators[$slug]['show_address_public'] = $op['show_address_public'];
     $prefix = 'ECOSYSTEM_OPERATOR_'.strtoupper(str_replace('-', '_', $slug)).'_';
     $vatPayerOverride = env($prefix.'VAT_PAYER');
     foreach ($op as $field => $value) {

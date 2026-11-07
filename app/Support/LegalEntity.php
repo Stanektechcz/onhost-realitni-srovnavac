@@ -74,6 +74,32 @@ class LegalEntity
         return implode(', ', $parts).', IČO '.self::ico().', '.self::vatStatus();
     }
 
+    /** Smí veřejný web ukázat ulici sídla? Pole show_address_public; chybí-li, OSVČ ne (sídlo = bydliště), firmy ano. */
+    public static function showAddressPublic(): bool
+    {
+        $v = Operator::get('show_address_public');
+        if ($v === null || $v === '') {
+            return self::form() !== 'osvc';
+        }
+
+        return is_bool($v) ? $v : filter_var($v, FILTER_VALIDATE_BOOL);
+    }
+
+    /** Plná adresa sídla („ulice, PSČ obec“), jak ji mají doklady; '' když chybí. */
+    public static function address(): string
+    {
+        $a = (array) Operator::get('address', []);
+        $city = trim(trim((string) ($a['zip'] ?? '')).' '.trim((string) ($a['city'] ?? '')));
+
+        return implode(', ', array_filter([trim((string) ($a['street'] ?? '')), $city]));
+    }
+
+    /** Sídlo pro veřejné stránky (kontakt, o nás, JSON-LD): plná adresa, nebo '' když se nezveřejňuje. */
+    public static function publicAddress(): string
+    {
+        return self::showAddressPublic() ? self::address() : '';
+    }
+
     /** Štítek k cenám. */
     public static function priceNote(): string
     {

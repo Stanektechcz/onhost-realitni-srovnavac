@@ -2,6 +2,7 @@
 
 use App\Models\Payment;
 use App\Models\User;
+use App\Support\LegalEntity;
 use App\Support\Operator;
 
 function operator_config_with_env(array $env): array
@@ -77,4 +78,25 @@ it('uses the entity id as default, accepts the adrian-stanek alias and derives v
         expect($cfg['operators']['adrian-stanek']['vat_mode'])->toBe($mode)
             ->and($cfg['operators']['adrian-stanek']['vat_payer'])->toBe($payer);
     }
+});
+
+it('hides the sole trader street on public pages but keeps it on payment documents', function () {
+    expect(LegalEntity::showAddressPublic())->toBeFalse()
+        ->and(operator_config_with_env([])['operators']['adrian-stanek']['show_address_public'])->toBeFalse()
+        ->and(operator_config_with_env(['ECOSYSTEM_OPERATOR_ADRIAN_STANEK_SHOW_ADDRESS_PUBLIC' => 'true'])['operators']['adrian-stanek']['show_address_public'])->toBeTrue();
+    foreach (['/', route('pages.about'), route('pages.contact'), route('legal', 'obchodni-podminky'), route('legal', 'ochrana-osobnich-udaju'), route('pages.faq')] as $url) {
+        test()->get($url)->assertOk()->assertDontSee('Molákova');
+    }
+    $user = User::factory()->create();
+    $p = Payment::create(['user_id' => $user->id, 'service' => 'membership', 'provider' => 'fake', 'amount_halere' => 10000, 'commission_halere' => 0, 'currency' => 'CZK', 'status' => 'created']);
+    expect($p->fresh()->seller_snapshot['address']['street'])->toBe('Molákova 2145/5');
+});
+
+it('shows a company registered address publicly when the flag is true', function () {
+    config(['operator.operators.xyz-sro' => ['name' => 'XYZ s.r.o.', 'legal_form' => 'sro', 'ico' => '12345678', 'show_address_public' => true,
+        'address' => ['street' => 'Molákova 1', 'zip' => '628 00', 'city' => 'Brno']], 'operator.operator' => 'xyz-sro']);
+    test()->get(route('pages.contact'))->assertOk()->assertSee('Sídlo Molákova 1, 628 00 Brno');
+    test()->get(route('pages.about'))->assertOk()->assertSee('Molákova 1, 628 00 Brno');
+    config(['operator.operators.xyz-sro.show_address_public' => false]);
+    test()->get(route('pages.contact'))->assertOk()->assertDontSee('Molákova');
 });
