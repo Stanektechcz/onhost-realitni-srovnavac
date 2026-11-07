@@ -1,4 +1,4 @@
-@php($op = \App\Http\Controllers\PagesController::OPERATOR)
+@php($op = \App\Http\Controllers\PagesController::operator())
 @php($topic = old('topic', array_key_exists((string) request('tema'), \App\Http\Controllers\PagesController::TOPICS) ? request('tema') : 'obecne'))
 @extends('layouts.app', ['title' => 'Kontakt', 'canonical' => route('pages.contact'), 'description' => 'Napište nám – dotazy k inzerci, srovnávači, osobním údajům nebo importu pro realitní kanceláře.', 'showErrorSummary' => false])
 @section('content')

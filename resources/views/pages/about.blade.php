@@ -1,4 +1,4 @@
-@php($op = \App\Http\Controllers\PagesController::OPERATOR)
+@php($op = \App\Http\Controllers\PagesController::operator())
 @extends('layouts.app', ['title' => 'O nás', 'canonical' => route('pages.about'), 'description' => 'Kdo provozuje realitní srovnávač ONhost a na jakých zásadách stojí.'])
 @section('content')
 @include('pages._header', ['eyebrow' => 'O nás', 'h1' => 'O nás', 'lead' => 'Stavíme přehledné místo pro inzerci a srovnání nemovitostí – s daty, u kterých víte, odkud jsou.'])

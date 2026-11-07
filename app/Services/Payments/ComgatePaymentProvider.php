@@ -6,7 +6,7 @@ use App\Models\Payment;
 use App\Services\Payments\Comgate\ComgateClient;
 
 /**
- * Own payment gateway of ONhost Reality (Comgate, merchant of Adrian Staněk) — works without ONhost credit or ONhost ID.
+ * Own payment gateway of ONhost Reality (Comgate, merchant = operator from config/operator.php) — works without ONhost credit or ONhost ID.
  * create() returns the redirect to the gateway; the payment is settled only by PaymentSettlement after re-reading status().
  */
 class ComgatePaymentProvider implements PaymentProvider
