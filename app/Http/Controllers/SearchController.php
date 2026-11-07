@@ -21,8 +21,23 @@ class SearchController extends Controller
             'furnishing' => ['nullable', Rule::in(array_keys(config('reality.furnishing')))],
             'has_balcony' => ['nullable', 'boolean'], 'has_elevator' => ['nullable', 'boolean'],
             'has_parking' => ['nullable', 'boolean'], 'pets_allowed' => ['nullable', 'boolean'],
-            'sort' => ['nullable', Rule::in(['newest', 'price_asc', 'price_desc', 'area_desc'])],
+            'q' => ['nullable', 'string', 'max:100'],
+            'floor_min' => ['nullable', 'integer', 'min:-2', 'max:100'],
+            'available_by' => ['nullable', 'date'],
+            'bbox' => ['nullable', 'string', 'max:100', 'regex:/^-?[\d.]+,-?[\d.]+,-?[\d.]+,-?[\d.]+$/'],
+            'poly' => ['nullable', 'string', 'max:2000'],
+            'sort' => ['nullable', Rule::in(['newest', 'price_asc', 'price_desc', 'area_desc', 'ppm2_asc'])],
         ];
+    }
+
+    public static function shortPrice(?int $halere): string
+    {
+        if ($halere === null) {
+            return '?';
+        }
+        $czk = $halere / 100;
+
+        return $czk >= 1_000_000 ? rtrim(rtrim(number_format($czk / 1_000_000, 1, ',', ''), '0'), ',').' mil.' : ($czk >= 1000 ? round($czk / 1000).' tis.' : (string) round($czk));
     }
 
     public function index(Request $request)
@@ -38,12 +53,16 @@ class SearchController extends Controller
     public function map(Request $request)
     {
         $filters = array_filter($request->validate(self::filterRules()), fn ($v) => $v !== null && $v !== '' && $v !== []);
-        $features = Listing::public()->filter($filters)->whereNotNull('lat')->whereNotNull('lng')->limit(500)
-            ->get(['slug', 'title', 'offer_type', 'property_type', 'disposition', 'area_m2', 'price_halere', 'lat', 'lng', 'city', 'district'])
+        $features = Listing::public()->filter($filters)->whereNotNull('lat')->whereNotNull('lng')->limit(1000)->with('photos')
+            ->get(['id', 'slug', 'title', 'offer_type', 'property_type', 'disposition', 'area_m2', 'price_halere', 'lat', 'lng', 'city', 'district'])
             ->map(fn (Listing $l) => [
                 'type' => 'Feature',
                 'geometry' => ['type' => 'Point', 'coordinates' => [$l->lng, $l->lat]],
-                'properties' => ['title' => $l->displayTitle(), 'price' => Listing::formatCzk($l->price_halere), 'url' => route('listings.show', $l)],
+                'properties' => [
+                    'slug' => $l->slug, 'title' => $l->displayTitle(), 'price' => Listing::formatCzk($l->price_halere),
+                    'short' => self::shortPrice($l->price_halere), 'url' => route('listings.show', $l),
+                    'thumb' => $l->photos->first()?->thumbUrl(), 'place' => collect([$l->district, $l->city])->filter()->join(', '),
+                ],
             ]);
 
         return response()->json(['type' => 'FeatureCollection', 'features' => $features])

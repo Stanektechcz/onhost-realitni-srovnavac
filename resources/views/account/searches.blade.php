@@ -1,20 +1,20 @@
-@extends('layouts.app', ['title' => 'Hlídací psi', 'noindex' => true])
-@section('content')
-<div class="mx-auto max-w-4xl px-4 py-6">
-    <h1 class="font-display text-3xl font-bold">Hlídací psi</h1>
-    <p class="text-sm text-gray-600">Každé ráno vám pošleme e-mail s novými inzeráty. Nové hlídání uložíte z <a class="text-pink underline" href="{{ route('search') }}">vyhledávání</a>.</p>
-    <div class="mt-4 space-y-3">
-        @forelse ($searches as $s)
-            <div class="card flex items-center gap-4 p-4">
-                <div class="flex-1">
-                    <a class="font-semibold hover:underline" href="{{ route('search', $s->filters) }}">{{ $s->name }}</a>
-                    <p class="text-xs text-gray-500">{{ collect($s->filters)->map(fn ($v, $k) => $k.': '.(is_array($v) ? implode(', ', $v) : $v))->join(' · ') ?: 'bez filtrů' }}</p>
-                </div>
-                <form method="POST" action="{{ route('account.searches.destroy', $s) }}">@csrf @method('DELETE')<button class="btn-ghost text-red-600">Smazat</button></form>
+@extends('layouts.account', ['title' => 'Hlídací psi'])
+@section('account')
+<h1 class="text-3xl font-bold md:text-4xl">Hlídací psi</h1>
+<p class="mt-1 text-sm text-muted-foreground">@if (config('reality.features.alerts'))Jednou denně vám e-mailem pošleme souhrn nových nabídek odpovídajících uloženému hledání.@else Uložená hledání si můžete kdykoli znovu otevřít.@endif Nové hledání uložíte tlačítkem „Hlídat“ ve výsledcích.</p>
+<div class="mt-6 space-y-3">
+    @forelse ($searches as $s)
+        <div class="card flex flex-wrap items-center gap-4 p-5">
+            <div class="min-w-0 flex-1">
+                <p class="font-semibold">{{ $s->name }}</p>
+                <p class="mt-1 flex flex-wrap gap-1 text-xs">@foreach ($s->filters as $k => $v)<span class="chip">{{ $k }}: {{ is_array($v) ? implode(', ', $v) : $v }}</span>@endforeach</p>
             </div>
-        @empty
-            <p class="card p-6 text-gray-600">Nemáte žádného hlídacího psa.</p>
-        @endforelse
-    </div>
+            <a class="btn-outline btn-sm" href="{{ route('search', $s->filters) }}">Zobrazit</a>
+            @if (config('reality.features.alerts'))<form method="POST" action="{{ route('account.searches.toggle', $s) }}">@csrf @method('PATCH')<button class="btn-ghost btn-sm">{{ $s->notify ? 'Vypnout e-maily' : 'Zapnout e-maily' }}</button></form>@endif
+            <form method="POST" action="{{ route('account.searches.destroy', $s) }}">@csrf @method('DELETE')<button class="btn-ghost btn-sm text-destructive">Smazat</button></form>
+        </div>
+    @empty
+        <div class="card p-10 text-center"><x-icon name="bell" class="mx-auto h-10 w-10 text-muted-foreground" /><p class="mt-3 text-muted-foreground">Zatím žádní hlídací psi.</p><a href="{{ route('search') }}" class="btn-primary mt-4">Nastavit hledání</a></div>
+    @endforelse
 </div>
 @endsection
